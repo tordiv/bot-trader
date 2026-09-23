@@ -21,8 +21,8 @@ Un bot Python, scritto da Claude Code, che:
   alle 11:30 ET;
 - opera su un conto simulato con regole rigide **verificate dal codice e da test**:
   rischio ≤ 1% per trade, controvalore ≤ 25% per posizione, rischio aperto totale entro il budget
-  giornaliero, kill switch al 2%, stop lato broker su ogni posizione, zero overnight, rispetto della
-  regola PDT;
+  giornaliero, kill switch al 2%, stop lato broker su ogni posizione, zero overnight, controllo dei
+  vincoli del conto e dei simboli negoziabili;
 - **salva il proprio stato su disco**, così un riavvio non azzera kill switch e contatori;
 - gira **in automatico** come servizio, con uno script di chiusura indipendente come seconda rete
   di sicurezza e notifiche sul telefono;
@@ -57,15 +57,20 @@ e secret in un password manager. Non incollarle in documenti, chat o prompt — 
 
 ### Passo 2 — Scegli il saldo paper (importante)
 Alpaca parte con $100.000 paper; dalla dashboard puoi resettare o creare un conto paper con il saldo
-che vuoi. **Imposta il saldo uguale al capitale che pensi di usare davvero in live.** Due casi:
+che vuoi. **Imposta il saldo uguale al capitale che pensi di usare davvero in live**, così
+dimensioni delle posizioni, costi fissi e vincoli del conto sono realistici.
 
-- **Capitale previsto < $25.000** → la regola PDT (se ancora in vigore quando leggi, verifica)
-  limita il bot a **3 day trade ogni 5 giorni lavorativi**. Il bot v2 la rispetta, ma il campione di
-  trade crescerà lentamente: metti in conto molti mesi di test.
-- **Capitale previsto ≥ $25.000** → nessun limite PDT, ma mantieni sempre un margine sopra la soglia
-  (una perdita che ti porta sotto $25.000 riattiva il limite).
+- **Regola PDT:** eliminata. Su Alpaca dal 4 giugno 2026 non si contano più i day trade e non esiste
+  più il minimo di $25.000 (nuovo *Intraday Margin Framework*). Un conto da $10.000 può quindi fare
+  day trading senza il vecchio limite di 3 operazioni in 5 giorni. Se usi un altro broker, verifica
+  quando applica la nuova regola (i broker hanno tempo fino al 20/10/2027).
+- **Soglia dei $2.000:** su Alpaca sotto $2.000 di equity il conto è a "margine limitato". Il bot non
+  usa comunque leva, ma evita di testare con saldi così bassi: gli arrotondamenti delle quantità
+  rendono le metriche poco significative.
 
-Gli esempi di questa guida usano $10.000 come l'originale.
+Gli esempi di questa guida usano $10.000 come l'originale. Se risiedi in Italia leggi anche
+[`04-fattibilita-italia-dati-piattaforme.md`](04-fattibilita-italia-dati-piattaforme.md): ETF USA
+possibilmente non negoziabili, limiti del feed gratuito, fisco e broker alternativi.
 
 ### Passo 3 — Cartella del progetto e git
 Se hai clonato questo repository sei già a posto (contiene `.gitignore`, `.env.example` e
@@ -153,7 +158,7 @@ nessun file.
 
 ARCHITETTURA (un file = una responsabilità)
 - config.py      tutte le costanti con nome (elencate sotto) + universo di 30 simboli modificabile.
-- risk.py        funzioni PURE (nessuna rete): sizing, budget di rischio, kill switch, gate PDT,
+- risk.py        funzioni PURE (nessuna rete): sizing, budget di rischio, kill switch, gate PDT opzionale,
                  validazione stop.
 - strategy.py    funzioni PURE di segnale (opening range, volume relativo, filtri, breakout),
                  usate SIA dal bot SIA dal backtest.
@@ -181,8 +186,8 @@ ENTRY_BUFFER_PCT=0.001, ENTRY_TIMEOUT_MIN=5, SCAN_TIME="09:45", ENTRY_CUTOFF="11
 FLATTEN_MINUTES_BEFORE_CLOSE=10, RVOL_MIN=1.5, BREAKOUT_VOL_MULT=1.2, GAP_MAX_PCT=0.05,
 OR_RANGE_MIN_PCT=0.003, OR_RANGE_MAX_PCT=0.03, MIN_PRICE=10, MAX_SPREAD_PCT=0.003,
 MAX_DATA_AGE_SEC=90, MAX_ORDERS_PER_DAY=10, MAX_CONSECUTIVE_LOSSES=3, SLIPPAGE=0.0005,
-EQUITY_DRIFT_MAX=0.20, RISK_CHECK_SEC=20, DATA_FEED="iex", PDT_EQUITY_THRESHOLD=25000,
-PDT_MAX_DAYTRADES=3.
+EQUITY_DRIFT_MAX=0.20, RISK_CHECK_SEC=20, DATA_FEED="iex", MAX_API_CALLS_PER_MIN=150,
+PDT_GATE_ENABLED=False, PDT_EQUITY_THRESHOLD=25000, PDT_MAX_DAYTRADES=3.
 
 REGOLE DI SICUREZZA — NEL CODICE, CIASCUNA CON ALMENO UN TEST
 1. MODALITÀ. Leggi TRADING_MODE da .env. In questa build l'unico valore accettato è "paper":
@@ -226,16 +231,27 @@ REGOLE DI SICUREZZA — NEL CODICE, CIASCUNA CON ALMENO UN TEST
 8. LIMITI. Max MAX_POSITIONS posizioni. Solo long. Niente opzioni, crypto, short, leva.
    Max MAX_ORDERS_PER_DAY ordini di entrata al giorno. Dopo MAX_CONSECUTIVE_LOSSES perdite di fila
    nella giornata, nessuna nuova entrata.
-9. PDT. Prima di ogni entrata leggi daytrade_count, pattern_day_trader ed equity dall'account.
-   Ogni trade di questo bot è un day trade. Se equity < PDT_EQUITY_THRESHOLD e
-   daytrade_count ≥ PDT_MAX_DAYTRADES → nessuna entrata, log "SKIP PDT". Se un ordine viene
-   rifiutato per PDT, non riprovarlo. Dimmi se, secondo la documentazione attuale di Alpaca, la
-   regola PDT è ancora in vigore e come si applica al conto paper.
+9. VINCOLI DEL CONTO E STRUMENTI NEGOZIABILI.
+   a) All'avvio, per ogni simbolo dell'universo, leggi l'asset dall'API e scarta quelli non
+      negoziabili (tradable falso o simili) con log "SKIP NOT_TRADABLE". Il bot deve funzionare
+      anche con un universo di sole azioni: per un residente UE molti ETF USA potrebbero essere
+      bloccati (regolamento PRIIPs).
+   b) Qualsiasi ordine rifiutato per margine, buying power o day trading è un errore bloccante:
+      nessun retry, log, notifica, nessuna nuova entrata per la giornata.
+   c) Gate PDT opzionale: se PDT_GATE_ENABLED è True, prima di ogni entrata leggi daytrade_count
+      ed equity; se equity < PDT_EQUITY_THRESHOLD e daytrade_count ≥ PDT_MAX_DAYTRADES → log
+      "SKIP PDT". Su Alpaca la regola PDT è stata sostituita dal 4 giugno 2026 dall'Intraday Margin
+      Rule, quindi il default è False: verifica sulla documentazione attuale di Alpaca e dimmelo.
 10. ORARI. Usa clock e calendar di Alpaca. Nessuna entrata prima di SCAN_TIME né dopo
     ENTRY_CUTOFF. Flatten a (chiusura effettiva della seduta − FLATTEN_MINUTES_BEFORE_CLOSE):
     deve funzionare anche nelle giornate a chiusura anticipata e non fare nulla nei giorni festivi.
-11. QUALITÀ DEI DATI. Non entrare se l'ultimo dato ha più di MAX_DATA_AGE_SEC secondi, se lo
-    spread bid/ask supera MAX_SPREAD_PCT o se il simbolo risulta sospeso. Log del motivo.
+11. QUALITÀ DEI DATI E LIMITI DEL PIANO GRATUITO. Non entrare se l'ultimo dato ha più di
+    MAX_DATA_AGE_SEC secondi, se lo spread bid/ask supera MAX_SPREAD_PCT o se il simbolo risulta
+    sospeso. Una barra da 1 minuto mancante NON è volume zero: salta il segnale con log
+    "SKIP NO_BAR". Scarica le barre con richieste multi-simbolo (una chiamata per tutto
+    l'universo), conta tutte le chiamate API e rallenta prima di MAX_API_CALLS_PER_MIN (il piano
+    gratuito ne consente 200/min); sulle risposte 429 usa backoff. Se usi il WebSocket ricorda il
+    limite di 30 simboli del piano gratuito. Log del motivo per ogni SKIP.
 12. ERRORI. Nessuna eccezione deve terminare il servizio in silenzio: log + notifica. Se il ciclo
     fallisce 3 volte di fila con posizioni aperte → esegui il flatten e smetti di aprire posizioni
     per la giornata.
@@ -268,7 +284,7 @@ BACKTEST (backtest.py)
   dello stesso feed, almeno 12 mesi se disponibili.
 - Nessun lookahead: in ogni istante usa solo dati già disponibili in quell'istante.
 - Stop e target nella stessa barra → assumi che venga colpito prima lo stop (ipotesi prudente).
-- Applica costi, tetti di sizing, max posizioni, kill switch e (opzione --pdt) il vincolo PDT.
+- Applica costi, tetti di sizing, max posizioni, kill switch e (opzione --pdt) il vecchio vincolo PDT.
 - Dividi in in-sample (primi 2/3) e out-of-sample (ultimo 1/3) e mostra le metriche separate.
 - Output: numero di trade, win rate, media R, expectancy in R e $, profit factor, max drawdown,
   risultato togliendo i 2 trade migliori, confronto con buy-and-hold SPY nello stesso periodo.
@@ -280,7 +296,7 @@ LOG E REPORT
   uscita, stop, target, rischio pianificato $, R multiplo, P&L lordo, costi simulati, P&L netto,
   motivo di uscita, prezzo del segnale, slippage reale in bp.
 - report.py genera reports/AAAA-MM-GG.md: equity iniziale e finale, P&L netto, numero di trade,
-  win rate, trade peggiore, kill switch sì/no, entrate saltate per PDT, e metriche CUMULATIVE
+  win rate, trade peggiore, kill switch sì/no, entrate saltate e relativi motivi, e metriche CUMULATIVE
   (trade totali, expectancy in R, profit factor, max drawdown, win rate con intervallo di
   confidenza al 95%). Sezione RULE VIOLATIONS calcolata AUTOMATICAMENTE confrontando log e stato
   del broker: ogni posizione aveva uno stop? rischio ≤ limite? posizioni ≤ max? nessuna posizione
@@ -291,8 +307,9 @@ TEST (tests/, nessuna chiamata di rete, broker simulato con mock)
 Devono dimostrare almeno che: il sizing non supera mai né l'1% di rischio né il 25% di
 controvalore né l'esposizione lorda; uno stop più vicino di MIN_STOP_PCT viene allargato; il budget
 di rischio blocca il trade che lo sforerebbe; il kill switch scatta esattamente al 2% e non
-all'1,99%; il flag del kill switch sopravvive al riavvio (stato ricaricato da disco); il gate PDT
-blocca la 4ª entrata; un ordine senza stop viene rifiutato da broker.py; TRADING_MODE diverso da
+all'1,99%; il flag del kill switch sopravvive al riavvio (stato ricaricato da disco); il gate PDT,
+se attivo, blocca la 4ª entrata; un simbolo non negoziabile viene escluso; un rifiuto per margine
+non viene riprovato; un ordine senza stop viene rifiutato da broker.py; TRADING_MODE diverso da
 "paper" impedisce l'avvio; un retry non duplica l'ordine; i segnali di strategy.py non usano dati
 futuri; le giornate a chiusura anticipata anticipano il flatten.
 
@@ -400,7 +417,9 @@ mesi e centinaia di trade: criteri completi in [`03-da-paper-a-live.md`](03-da-p
 | Problema | Soluzione |
 |---|---|
 | `401 Unauthorized` / `forbidden` | Chiavi del conto sbagliato: generale sotto **Paper** nella dashboard e verifica `.env`. |
-| Ordini rifiutati per "pattern day trading" | Limite PDT raggiunto (conto < $25.000). Comportamento atteso: il bot deve registrare `SKIP PDT` e non riprovare. Vedi §3 passo 2. |
+| Ordini rifiutati per "pattern day trading" o margine | Su Alpaca la PDT non esiste più dal 4/6/2026: un rifiuto del genere indica un vincolo del conto da chiarire col supporto (o un broker che applica ancora la vecchia regola: attiva `PDT_GATE_ENABLED`). Il bot deve fermare le entrate e non riprovare. |
+| Simbolo scartato con `SKIP NOT_TRADABLE` | Il tuo conto non può negoziarlo (spesso ETF USA per residenti UE). Sostituiscilo con un'azione liquida nell'universo. |
+| Errori 429 (troppe richieste) | Superato il limite di 200 chiamate/minuto del piano gratuito: usa richieste multi-simbolo e il limitatore `MAX_API_CALLS_PER_MIN`. |
 | Ordini rifiutati per "insufficient buying power" | Il sizing ignora un tetto: è un bug (regola 3). Aggiungi un test che lo riproduca. |
 | Nessun trade per giorni | Spesso corretto: nessun simbolo ha superato i filtri. Controlla i motivi in `watchlist.csv` e gli `SKIP` in `logs/events.log`. |
 | Errori di dati o barre mancanti | Il piano gratuito ha limiti: verifica `DATA_FEED="iex"`, riduci l'universo o la frequenza di polling. |

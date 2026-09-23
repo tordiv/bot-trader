@@ -15,8 +15,11 @@ La guida originale è **ottima come impostazione di sicurezza** (paper only, reg
 kill switch, bracket order, test, dry-run, frase di conferma esplicita) ma **fragile come progetto di
 trading reale**. Contiene alcuni problemi che in paper passano inosservati e che in live costano denaro:
 
-1. **La regola PDT** (Pattern Day Trader) blocca un conto da $10.000 dopo 3 day trade in 5 giorni —
-   anche in paper. La guida non la cita.
+1. **I vincoli del conto non sono considerati.** Quando la guida è stata scritta, la regola PDT
+   (Pattern Day Trader) bloccava un conto da $10.000 dopo 3 day trade in 5 giorni, anche in paper, e
+   la guida non la cita. La regola è stata poi eliminata (su Alpaca dal 4 giugno 2026, vedi
+   [04 §1.3](04-fattibilita-italia-dati-piattaforme.md)), ma il difetto di fondo resta: il bot
+   presume invece di leggere dall'API cosa il conto gli permette.
 2. **Il dimensionamento delle posizioni non ha un tetto al controvalore**: con uno stop stretto la
    formula chiede più azioni di quante il conto possa comprare (cioè leva), contraddicendo la regola
    "no leverage".
@@ -62,19 +65,24 @@ completamente fuorvianti. **Importante** = degrada seriamente l'affidabilità. *
 
 ### Critici
 
-#### C1 — La regola PDT (Pattern Day Trader) non è considerata
-- **Problema.** Negli USA un conto *margin* con equity sotto $25.000 può fare al massimo 3 day trade
-  in 5 giorni lavorativi. Ogni trade di questo bot è per costruzione un day trade (apre e chiude nella
-  stessa seduta). Alpaca applica questo controllo **anche ai conti paper** e rifiuta l'ordine che
-  violerebbe la regola.
-- **Conseguenza.** Con $10.000 il bot può fare circa 3 trade a settimana: servono mesi per avere un
-  campione minimo, e dal 4° trade compaiono ordini rifiutati che la guida non spiega.
-- **Nota.** FINRA ha proposto di sostituire la regola PDT con requisiti di margine intraday: prima di
-  andare live **verifica lo stato attuale** sul sito di Alpaca/FINRA. Il codice deve comunque
-  leggere `daytrade_count` e `pattern_day_trader` dall'API invece di presumere.
-- **Correzione.** Il bot v2 legge i campi PDT dall'account e smette di aprire posizioni quando
-  un'altra entrata violerebbe la regola (log `SKIP PDT`). La guida spiega come scegliere il saldo
-  paper (vedi 02 §3 e 03 §3.1).
+#### C1 — Vincoli del conto (PDT, margine, strumenti negoziabili) non considerati
+- **Problema (all'epoca della guida).** Negli USA un conto *margin* con equity sotto $25.000 poteva
+  fare al massimo 3 day trade in 5 giorni lavorativi, e Alpaca applicava il controllo anche ai conti
+  paper. Ogni trade di questo bot è per costruzione un day trade: con $10.000 il bot avrebbe fatto
+  circa 3 trade a settimana e dal 4° avrebbe ricevuto ordini rifiutati che la guida non spiega.
+- **Situazione a settembre 2026.** La SEC ha approvato l'eliminazione della regola PDT; FINRA l'ha resa
+  efficace dal 4 giugno 2026 con un periodo transitorio per i broker fino al 20 ottobre 2027. Alpaca
+  applica il nuovo *Intraday Margin Framework* dal 4 giugno 2026: niente conteggio dei day trade, niente
+  minimo di $25.000 (dettagli in [04 §1.3](04-fattibilita-italia-dati-piattaforme.md)). Altri broker
+  potrebbero adeguarsi più tardi.
+- **Perché resta un punto critico.** Il bot deve comunque **leggere dall'API** cosa il conto gli
+  permette invece di presumerlo: stato del conto (`trading_blocked`, `account_blocked`), eventuali
+  vincoli di day trading ancora presenti su altri broker, e — per un residente UE — quali strumenti
+  sono davvero negoziabili (molti ETF USA possono essere bloccati dal regolamento PRIIPs, 04 §1.4).
+- **Correzione.** Il bot v2 controlla stato del conto e negoziabilità di ogni simbolo all'avvio,
+  tratta ogni rifiuto per motivi di margine o day trading come errore bloccante (nessun retry) e ha un
+  gate PDT configurabile (`PDT_GATE_ENABLED`), disattivato per Alpaca e da riattivare solo su un
+  broker che applichi ancora la vecchia regola.
 
 #### C2 — Dimensionamento senza tetto al controvalore (leva implicita)
 - **Problema.** `qty = (1% equity) / (entry − stop)`. Con $10.000, rischio $100, titolo da $200 e
@@ -195,7 +203,7 @@ per avvio, entrate, uscite, kill switch, errori; heartbeat verso un servizio "de
 | # | Problema | Correzione |
 |---|---|---|
 | M1 | `APCA_API_BASE_URL` in `.env` non è usato da `alpaca-py` (conta `paper=True`): innocuo ma fuorviante, e in live potrebbe dare un falso senso di controllo. | Variabile `TRADING_MODE` esplicita, verifica del tipo di conto tramite API. |
-| M2 | Saldo paper fissato a $10.000 a prescindere. | Impostare il saldo paper **uguale al capitale che userai davvero in live**, così le metriche (e i vincoli PDT) sono realistici. |
+| M2 | Saldo paper fissato a $10.000 a prescindere. | Impostare il saldo paper **uguale al capitale che userai davvero in live**, così le metriche e i vincoli del conto sono realistici. |
 | M3 | "Incolla il report in Claude e chiedi cosa cambiare" ogni sera invita all'overfitting. | Registro delle modifiche (`CHANGELOG.md`); ogni modifica di strategia riparte dal backtest e da un nuovo periodo paper. |
 | M4 | Nessun controllo di stato del conto (`trading_blocked`, `account_blocked`). | Controllo all'avvio e a ogni ciclo. |
 | M5 | Strategia ORB (opening range breakout) molto nota e affollata; nessuna evidenza di edge. | Il backtest diventa il filtro d'ingresso; la guida lo dichiara apertamente. |
@@ -208,7 +216,7 @@ per avvio, entrate, uscite, kill switch, errori; heartbeat verso un servizio "de
 
 | Debolezza | Dove è corretta |
 |---|---|
-| C1 PDT | 02 §3 (saldo paper), prompt v2 regola 9, 03 §3.1 |
+| C1 Vincoli del conto | 02 §3 (saldo paper), prompt v2 regola 9, 03 §3.1, 04 §1 |
 | C2 Leva implicita | Prompt v2 regola 3 |
 | C3 Tempistica | Prompt v2 sezione STRATEGIA |
 | C4 Rischio aggregato | Prompt v2 regole 4–5 |

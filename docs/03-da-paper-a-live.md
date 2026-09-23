@@ -37,8 +37,9 @@
 | **F6 Live pieno** | Operatività a regime | continua | 100% del capitale dedicato | ≤ 1% | revisioni mensili §8 |
 | **↩ Ritorno** | Qualcosa non torna | — | — | — | vedi §7.2 |
 
-Con un conto sotto $25.000 soggetto a PDT (3 day trade ogni 5 giorni) le fasi F2, F4 e F5 durano
-**molto** di più: 20 trade richiedono circa 7 settimane. È un vincolo reale, non un dettaglio (§3.1).
+La regola PDT (3 day trade ogni 5 giorni sotto $25.000) è stata eliminata e su Alpaca non si applica
+più dal 4 giugno 2026 (§3.1). Se però usi un broker che la applica ancora, le fasi F2, F4 e F5 durano
+**molto** di più: 20 trade richiedono circa 7 settimane.
 
 ---
 
@@ -98,24 +99,27 @@ Se anche una sola casella è vuota → resta in paper. Non c'è fretta: il merca
 
 ## 3 · Vincoli del mondo reale da risolvere prima (F3)
 
-### 3.1 Regola PDT e tipo di conto
-- Storicamente negli USA un conto **margin** sotto $25.000 è limitato a 3 day trade in 5 giorni
-  lavorativi; oltre, il conto viene marcato "pattern day trader" e bloccato per i day trade.
-- FINRA ha proposto di sostituire questa regola con requisiti di margine intraday. **Prima di
-  andare live verifica lo stato attuale** sul sito di Alpaca e di FINRA: la tua pianificazione cambia
-  radicalmente a seconda della risposta.
-- Opzioni se la regola è in vigore:
-  1. Capitale ≥ $25.000 con un cuscinetto (es. $30.000), perché una perdita sotto soglia riattiva il
-     limite. Il bot deve comunque usare solo `LIVE_CAPITAL_CAP` per il sizing.
-  2. Capitale < $25.000 accettando ~3 trade/settimana (il bot v2 lo gestisce già).
-  3. Un conto **cash** (se disponibile per il tuo profilo): niente PDT ma vincoli di regolamento
-     dei fondi (non puoi riusare lo stesso denaro prima del settlement). Richiede modifiche al
-     codice e un nuovo periodo paper.
-- In ogni caso il bot non usa mai la leva: anche su conto margin l'esposizione è ≤ equity.
+### 3.1 Regola PDT, nuovo regime intraday e tipo di conto
+- **La regola PDT non c'è più.** La SEC ha approvato il 14 aprile 2026 l'eliminazione della regola PDT
+  e del minimo di $25.000; FINRA l'ha resa efficace dal **4 giugno 2026**, lasciando ai broker tempo
+  fino al **20 ottobre 2027** per adeguarsi. **Alpaca applica il nuovo Intraday Margin Framework dal
+  4 giugno 2026**: niente conteggio dei day trade, niente designazione "pattern day trader".
+- **Al suo posto:** un controllo in tempo reale che l'equity sia adeguata all'esposizione effettiva
+  durante la giornata. Il bot non usa leva (esposizione ≤ equity), quindi non dovrebbe mai generare
+  una margin call intraday: se succede è un bug o un vincolo del conto da chiarire → `HALTED`.
+- **Tipo di conto:** su Alpaca tutti i conti sono margin (non esiste un conto solo cash); sotto
+  $2.000 di equity il conto è a "margine limitato". Chiedi al supporto se puoi disattivare margine
+  e short.
+- **Se usi un altro broker:** verifica se applica già il nuovo regime; se no, attiva
+  `PDT_GATE_ENABLED` e pianifica fasi molto più lunghe, oppure un capitale ≥ $25.000 con cuscinetto.
+- Dettagli e fonti: [04 §1.3](04-fattibilita-italia-dati-piattaforme.md).
 
 ### 3.2 Idoneità e apertura del conto
-- Verifica che Alpaca offra conti live ai residenti in Italia e a quali condizioni (tipo di conto,
-  commissioni, metodi di deposito).
+- Alpaca risulta disponibile per i residenti in Italia per il trading via API su mercati USA. Prima di
+  aprire il conto fai al supporto le domande di [04 §1.6](04-fattibilita-italia-dati-piattaforme.md)
+  (entità che apre il conto, tutela degli investitori, ETF USA, costi di deposito e prelievo).
+- Verifica quali simboli del tuo universo sono **negoziabili dal conto reale**: per un residente UE
+  molti ETF USA possono essere bloccati (PRIIPs). Il bot deve funzionare con sole azioni.
 - Completa la verifica d'identità (KYC) e il modulo fiscale **W-8BEN** (dichiari di non essere
   soggetto fiscale USA: in base al trattato Italia–USA la ritenuta sui dividendi è ridotta; un bot
   intraday di solito non incassa dividendi, ma il modulo è comunque richiesto).
@@ -130,8 +134,9 @@ Se anche una sola casella è vuota → resta in paper. Non c'è fretta: il merca
   entrambi.
 
 ### 3.4 Dati di mercato: IEX vs SIP
-- Il piano gratuito fornisce in tempo reale solo il feed IEX, che vede una piccola parte del volume
-  USA. Volume relativo, massimi/minimi della prima barra e breakout possono differire da quelli sul
+- Il piano gratuito fornisce in tempo reale solo il feed IEX, che vede circa il 2,5% del volume USA,
+  con un limite di 200 chiamate/minuto e 30 simboli in streaming (analisi completa in
+  [04 §2](04-fattibilita-italia-dati-piattaforme.md)). Volume relativo, massimi/minimi della prima barra e breakout possono differire da quelli sul
   feed consolidato (SIP).
 - Gli ordini reali vengono eseguiti sul mercato vero, non su IEX: il segnale IEX può anticipare,
   ritardare o inventare un breakout rispetto al mercato reale.
@@ -152,14 +157,17 @@ commercialista, imposte.
 | Capitale | $10.000 |
 | Rischio medio effettivo per trade (dopo i tetti) | ~$70 |
 | Expectancy ipotetica | +0,2 R ⇒ +$14/trade |
-| Trade/mese con vincolo PDT | ~12 |
-| Lordo mensile | ~$168 |
-| − dati SIP + server | ~−$110 |
-| Netto ante imposte | ~$58 |
-| − imposta 26% sulle plusvalenze | ≈ $43/mese |
+| Trade/mese (senza più il vincolo PDT, con i filtri della strategia) | ~20 |
+| Lordo mensile | ~$280 |
+| − dati SIP (~$99) + server (~$10) | ~−$110 |
+| − cambio EUR/USD e prelievi, ripartiti sul mese | ~−$10 |
+| Netto ante imposte | ~$160 |
+| − imposta 26% sulle plusvalenze | ≈ $118/mese |
+| − commercialista per il regime dichiarativo, ripartito sul mese | da stimare |
 
-Morale: con capitale piccolo e vincolo PDT i costi fissi mangiano quasi tutto, anche con un edge
-positivo (che resta da dimostrare). Rifai il conto con i tuoi numeri reali del paper **prima** di
+Morale: con capitale piccolo i costi fissi si mangiano gran parte del risultato, anche con un edge
+positivo (che resta da dimostrare). La fine della regola PDT aumenta il numero di trade possibili,
+ma non rende la strategia più profittevole. Rifai il conto con i tuoi numeri reali del paper **prima** di
 spendere un euro.
 
 ---
@@ -441,7 +449,7 @@ dell'esecuzione reale (*implementation shortfall*):
 
 ### 8.2 Revisione settimanale (20 minuti)
 Trade, expectancy in R, profit factor, drawdown, slippage, confronto con paper, errori, SKIP
-(soprattutto PDT e qualità dei dati). Annota in `JOURNAL.md`. Nessuna modifica di parametri.
+(soprattutto vincoli del conto e qualità dei dati). Annota in `JOURNAL.md`. Nessuna modifica di parametri.
 
 ### 8.3 Revisione mensile (1 ora)
 - Rinnova `LIVE_ARMED` **solo** dopo aver completato la revisione (è per questo che scade).
@@ -462,7 +470,8 @@ Trade, expectancy in R, profit factor, drawdown, slippage, confronto con paper, 
 | Kill switch scattato | Flatten, stop per la giornata | Leggi il report; niente modifiche "a caldo" |
 | Posizione sconosciuta sul conto | Stop di protezione + notifica | Capisci da dove arriva (ordine manuale? bug?) prima di ripartire |
 | Quantità eseguita diversa dal previsto | Riconciliazione la segnala | `HALTED` finché non è spiegata |
-| Ordine rifiutato per PDT | `SKIP PDT`, nessun retry | Nessuna azione; se inatteso, verifica `daytrade_count` |
+| Ordine rifiutato per margine o day trading | Errore bloccante: nessun retry, nessuna nuova entrata, notifica | Su Alpaca la PDT non esiste più: chiarisci col supporto il vincolo del conto prima di ripartire |
+| Simbolo non negoziabile (`SKIP NOT_TRADABLE`) | Escluso dall'universo | Sostituiscilo con un'azione liquida; rifai backtest se l'universo cambia molto |
 | Conto bloccato (`trading_blocked`) | Nessuna entrata, notifica | Contatta il supporto del broker |
 | Dati vecchi o spread anomali | Nessuna entrata sul simbolo | Se sistematico, rivedi feed e universo |
 | Posizione ancora aperta dopo la chiusura | `flatten.py` a mercato chiuso non invia ordini ma allarma | Decidi tu all'apertura successiva; il bot all'avvio la tratta come violazione |
@@ -489,13 +498,17 @@ Trade, expectancy in R, profit factor, drawdown, slippage, confronto con paper, 
 - Chiedi esplicitamente se, per frequenza e volumi, l'attività possa essere inquadrata
   diversamente (ad esempio come attività d'impresa) e quali conseguenze avrebbe.
 - **Costo pratico:** metti a bilancio il compenso del commercialista nel calcolo del §3.5.
+- **Alternativa:** un broker italiano in regime amministrato (es. Directa, BG Saxo) calcola e versa
+  le imposte al posto tuo; confronto delle piattaforme in [04 §3](04-fattibilita-italia-dati-piattaforme.md).
 
 ---
 
 ## 11 · Checklist finale
 
 ### Parte A — Preparazione (F3)
-- ☐ Stato della regola PDT verificato; scelta capitale/tipo di conto fatta (§3.1)
+- ☐ Nuovo regime intraday del broker verificato; scelta capitale/tipo di conto fatta (§3.1)
+- ☐ Fattibilità personale da residente in Italia verificata ([04 §4](04-fattibilita-italia-dati-piattaforme.md))
+- ☐ Piattaforma per il live scelta ([04 §3](04-fattibilita-italia-dati-piattaforme.md))
 - ☐ Conto live aperto, KYC e W-8BEN completati, 2FA attivo (§3.2)
 - ☐ Strategia sul cambio EUR/USD decisa (§3.3)
 - ☐ Decisione sul feed dati presa; se cambiato, backtest e paper rifatti (§3.4)
