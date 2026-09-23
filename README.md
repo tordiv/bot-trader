@@ -16,6 +16,7 @@ operatività automatica.
 | [`docs/03-da-paper-a-live.md`](docs/03-da-paper-a-live.md) | Guida dettagliata al passaggio paper → live automatico: fasi, criteri quantitativi, PDT, dati, costi, lucchetti nel codice, server e systemd, runbook, circuit breaker, incidenti, fiscalità per residenti in Italia. |
 | [`docs/04-fattibilita-italia-dati-piattaforme.md`](docs/04-fattibilita-italia-dati-piattaforme.md) | Fattibilità reale per una persona fisica residente in Italia (entità Alpaca, fine della regola PDT, ETF USA e PRIIPs, valuta, fisco), limiti del feed dati gratuito e impatto sulla strategia, confronto delle piattaforme compatibili (Alpaca, Interactive Brokers, Directa, BG Saxo, Trading 212). |
 | [`docs/05-scenario-personale.md`](docs/05-scenario-personale.md) | Scenario personale: PC Windows sempre acceso, regime amministrato, capitale ~1.000 €/$, niente feed a pagamento. Costi reali Alpaca vs Directa, passaggio a strategie su barre giornaliere, percorso a gradi (paper → segnali con esecuzione manuale su Directa → automazione), configurazione Windows, domande aperte ai broker. |
+| [`docs/06-piano-operativo.md`](docs/06-piano-operativo.md) | **Piano operativo scelto**: segnali settimanali su azioni USA con esecuzione manuale su Directa (regime amministrato) e 1.000 €. Perché niente micro futures, numeri delle commissioni, varianti A/B/C da testare in paper, strategia, cancello per il live, routine settimanale e ticket, PC Windows Pro senza UPS, prompt v3 per Claude Code, calendario. |
 
 ## File di supporto
 
@@ -29,3 +30,6 @@ operatività automatica.
 2. Segui `02` per costruire il bot e testarlo in paper (backtest → paper supervisionato → paper automatico).
 3. Se risiedi in Italia, leggi `04` prima di aprire un conto reale: fattibilità, dati e scelta del broker.
 4. Solo quando tutte le caselle di `03` §2.3 sono spuntate, segui `03` per il live a fasi.
+
+> Per lo scenario personale (1.000 €, Directa, esecuzione manuale) il percorso operativo è quello di
+> `06`, che sostituisce la strategia intraday di `02`–`03`.

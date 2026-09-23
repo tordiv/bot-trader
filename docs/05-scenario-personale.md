@@ -1,5 +1,8 @@
 # 05 — Scenario personale: PC Windows sempre acceso, regime amministrato, capitale ~1.000 €/$, nessun feed a pagamento
 
+> **Seguito:** le decisioni prese su questa base (esecuzione manuale su Directa, strategia settimanale,
+> solo azioni USA, niente micro futures) e il piano concreto sono in [`06-piano-operativo.md`](06-piano-operativo.md).
+
 > Questo capitolo applica le guide 01–04 alle tue condizioni concrete. Dati di costo raccolti a
 > settembre 2026 da fonti pubbliche: tutto ciò che è marcato **[verifica]** va confermato con il
 > broker, perché listini e condizioni cambiano. Non è consulenza finanziaria o fiscale.
