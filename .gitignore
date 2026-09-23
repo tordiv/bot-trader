@@ -19,3 +19,7 @@ HALTED
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# Dati personali del motore di segnali
+tickets/
+ledger/fills.csv

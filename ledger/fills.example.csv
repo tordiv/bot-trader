@@ -1,0 +1,5 @@
+date,action,symbol,qty,price_usd,commission_usd,ticket_id,note
+2026-12-01,DEPOSIT,,,1150.00,,,versamento iniziale (controvalore in dollari)
+2026-12-07,BUY,XYZ,12,74.10,9.00,20261204-01,eseguito all'apertura
+2026-12-07,STOP,XYZ,,69.70,,20261204-01,stop loss condizionato inserito subito dopo
+2026-12-12,STOP,XYZ,,71.20,,20261211-01,stop spostato (ticket SPOSTA STOP)

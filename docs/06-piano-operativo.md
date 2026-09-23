@@ -13,7 +13,7 @@
 |---|---|---|
 | 1 | Regime amministrato, segnali del bot ed **esecuzione manuale** | Broker: **Directa**. Il bot non si collega mai al conto reale: niente chiavi, nessun canone API. |
 | 2 | Operazioni di **più giorni su barre giornaliere** | Dati gratuiti sufficienti (barre giornaliere storiche SIP da Alpaca). Nuovo rischio: gap overnight. |
-| 3 | Per ora **solo azioni USA**; micro futures su indici se convengono | Micro futures: **non convengono** con 1.000 € (§1). Per l'esposizione all'indice c'è un'alternativa senza leva (§2.3). |
+| 3 | Per ora **solo azioni USA**; micro futures su indici se convengono | Micro futures: **non convengono** con 1.000 € (§1). ETF a commissioni zero **esclusi**: la soglia minima d'ordine più bassa verificata è 1.000 $ (§2.3). |
 | 4 | Capitale **1.000 €** stabile | Le commissioni per ordine sono il fattore decisivo: la strategia deve fare **pochissimi trade** (§2). |
 | 5 | Perdita accettabile: anche tutto il capitale | Propongo comunque limiti formali che fermano l'esperimento prima (§6.3). |
 | 6 | Nessun conto Directa, nessun commercialista | Col regime amministrato il commercialista non è necessario per questa attività. Apertura conto al §5. |
@@ -69,30 +69,24 @@ rischiare il 5–8% per trade: 5 perdite consecutive fanno −25/−35%. Con 1.0
 Directa **non esiste un compromesso comodo**: o rischi molto per trade, o le commissioni divorano
 l'edge. Il backtest (§4) deve dirti se esiste una configurazione che regge **dopo** le commissioni.
 
-### 2.3 Le alternative a costo quasi zero (sempre in regime amministrato)
-- **ETF UCITS su indici USA quotati a Milano** (es. su S&P 500 o Nasdaq-100): hanno il KID, quindi
-  sono acquistabili, e molti emittenti partner di Directa (iShares, Vanguard, Amundi, Xtrackers/DWS…)
-  sono **senza commissioni d'ordine**, con condizioni da verificare per singolo ETF (alcuni richiedono
-  ordini minimi, es. 1.500 € per gli ETF Fidelity) **[verifica]**. È il modo corretto di avere
-  "l'indice" con 1.000 €, al posto dei micro futures: stessa esposizione, **senza leva**.
-- **Attenzione fiscale:** per gli ETF le **plusvalenze** sono redditi di capitale e **non** si
-  compensano con le minusvalenze pregresse, mentre le **minusvalenze** sono redditi diversi. Con le
-  azioni, invece, guadagni e perdite si compensano fra loro. Per piccoli importi pesa poco, ma va
-  saputo **[verifica con Directa]**.
-- **Il benchmark onesto:** comprare e tenere un ETF S&P 500 senza commissioni. Se dopo costi e
-  imposte il bot non fa meglio di questo, la scelta razionale è non usare il bot.
+### 2.3 ETF a commissioni zero: esclusi
+- Gli ETF UCITS a commissioni zero su Directa richiedono ordini minimi: la soglia più bassa che hai
+  verificato è **1.000 $**, cioè praticamente tutto il capitale per un solo ordine, senza margine per
+  gli arrotondamenti né per una seconda operazione. **Esclusi dal piano.**
+- Restano utili come **metro di paragone teorico**: se dopo costi e imposte la variante A non fa
+  meglio di "comprare e tenere l'indice", la scelta razionale è non usare il bot.
+- Da ricordare per il futuro (con più capitale): per gli ETF le plusvalenze sono redditi di capitale
+  e non si compensano con le minusvalenze pregresse.
 
-### 2.4 Proposta: testare in paper due varianti in parallelo
-Rispetta la tua scelta (azioni USA) ma ti dà i dati per decidere:
+### 2.4 Cosa si confronta nel backtest
+Si negozia **solo la variante A**. B e C sono benchmark **teorici** (SPY con quote frazionarie e
+9 $ per ordine), non strumenti da comprare:
 
-| Variante | Cosa fa | Costi simulati | Perché |
+| | Cosa fa | Costi simulati | Ruolo |
 |---|---|---|---|
-| **A — Azioni USA** (principale) | Rotazione settimanale su un universo di azioni USA liquide, 1–2 posizioni | $9 per ordine | La tua preferenza |
-| **B — Indice via ETF** (controllo) | Filtro di trend settimanale su S&P 500: investito nell'ETF UCITS quando l'indice è sopra la media a 40 settimane, liquidità altrimenti | 0 € (ETF partner) **[verifica]** | Alternativa a costo zero ai micro futures |
-| **C — Buy & hold** (benchmark) | Compra e tieni l'ETF | 0 € | Il risultato da battere |
-
-Tutte e tre vengono simulate sugli **stessi dati** con il loro costo reale. Alla fine del paper
-scegli con i numeri, non con le preferenze.
+| **A — Azioni USA** | Rotazione settimanale su azioni USA liquide, 1 posizione | $9 per ordine | **L'unica negoziata** |
+| **B — Trend sull'indice** | Investito quando l'S&P 500 è sopra la media a 40 settimane | $9 per ordine | Benchmark teorico |
+| **C — Buy & hold** | Compra e tieni l'S&P 500 | $9 una volta | Il risultato da battere |
 
 ---
 
@@ -129,7 +123,7 @@ Numero atteso di operazioni: poche all'anno. Il backtest dirà quante e con qual
   ($9/ordine per A, 0 € per B).
 - **Distorsione di sopravvivenza:** un universo scelto *oggi* contiene solo aziende che sono andate
   bene fino a oggi, e gonfia i risultati del passato. Rimedi: universo fisso scelto con criteri
-  semplici, confronto con la variante B (indice, non soffre di questo problema), e diffidenza verso
+  semplici, confronto con i benchmark B e C (indice, non soffrono di questo problema), e diffidenza verso
   risultati molto migliori dell'indice.
 - **Paper:** conto Alpaca paper con **$1.000** (o l'equivalente di 1.000 €). Il bot esegue sul paper
   gli stessi ticket che manderebbe a te, sottraendo nei report le commissioni Directa simulate.
@@ -154,9 +148,7 @@ Numero atteso di operazioni: poche all'anno. Il backtest dirà quante e con qual
 - **Non** ti serve la piattaforma Darwin desktop a pagamento: per inserire gli ordini a mano bastano le
   piattaforme gratuite (web/app) **[verifica quali consentono ordini condizionati sugli USA]**.
 - Imposta di bollo sugli strumenti finanziari: 0,2% annuo del valore, cioè circa 2 € su 1.000 € **[verifica]**.
-- Profilo commissionale: sugli USA la tariffa di ~$9 per ordine è indicata come fissa; per gli ETF
-  partner conta la gratuità; per eventuali ETF non partner su Borsa Italiana il profilo "variabile"
-  (minimo 1,5 €) è in genere il più economico per ordini piccoli **[verifica]**.
+- Profilo commissionale: sugli USA la tariffa di ~$9 per ordine è indicata come fissa **[verifica]**.
 
 ### 5.2 Fisco in regime amministrato (cosa fa Directa per te)
 - Calcola e versa il 26% sulle plusvalenze realizzate, tiene lo **zainetto fiscale** delle
@@ -175,9 +167,7 @@ Numero atteso di operazioni: poche all'anno. Il backtest dirà quante e con qual
    solo alla sessione regolare (15:30–22:00).
 3. Quali ordini condizionati (stop loss, OCO, OSO) sono disponibili sugli USA dalle piattaforme
    gratuite?
-4. Quali ETF UCITS su S&P 500/Nasdaq-100 sono a commissioni zero **in acquisto e in vendita**, con
-   quali importi minimi, e ci sono limiti di frequenza?
-5. Commissione esatta su un ordine USA da ~$500, e come viene mostrato il cambio applicato.
+4. Commissione esatta su un ordine USA da ~$500, e come viene mostrato il cambio applicato.
 
 ---
 
@@ -237,19 +227,18 @@ Integra 05 §5 con queste impostazioni:
   all'automazione completa.
 - **Connessione di riserva:** configurala come rete secondaria automatica; il bot deve solo poter
   scaricare i dati e mandare notifiche.
-- **Pianificazione dei job:**
-  ```powershell
-  schtasks /Create /TN "BotSignals-Daily" /SC WEEKLY /D MON,TUE,WED,THU,FRI /ST 22:45 /RU trader /RP * `
-    /TR "C:\bot-trader\.venv\Scripts\python.exe C:\bot-trader\daily.py"
-  schtasks /Create /TN "BotSignals-Weekly" /SC WEEKLY /D SAT /ST 09:00 /RU trader /RP * `
-    /TR "C:\bot-trader\.venv\Scripts\python.exe C:\bot-trader\weekly.py"
-  ```
-  Nelle proprietà di ogni attività attiva "Esegui l'attività il prima possibile dopo un avvio
-  pianificato mancato".
+- **Pianificazione dei job:** lo script `windows\register_tasks.ps1` registra i due job (controlli
+  serali alle 22:45 dal lunedì al venerdì, ticket il sabato alle 9:00) con recupero automatico delle
+  esecuzioni mancate e senza bisogno di utente collegato. Dettagli in
+  [`07-manuale-motore.md`](07-manuale-motore.md).
 
 ---
 
 ## 8 · Prompt per Claude Code (v3: motore di segnali settimanali)
+
+> ✅ **Già implementato** in questo repository (cartella `segnali/`, manuale in
+> [`07-manuale-motore.md`](07-manuale-motore.md)). Il prompt resta come specifica di riferimento;
+> l'implementazione tratta B e C come benchmark teorici invece che come varianti negoziabili.
 
 Da usare in una cartella nuova (o in un branch separato) al posto del prompt intraday di 02 §4.
 Le chiavi Alpaca sono **paper** e servono solo per dati e simulazione.

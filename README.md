@@ -17,10 +17,27 @@ operatività automatica.
 | [`docs/04-fattibilita-italia-dati-piattaforme.md`](docs/04-fattibilita-italia-dati-piattaforme.md) | Fattibilità reale per una persona fisica residente in Italia (entità Alpaca, fine della regola PDT, ETF USA e PRIIPs, valuta, fisco), limiti del feed dati gratuito e impatto sulla strategia, confronto delle piattaforme compatibili (Alpaca, Interactive Brokers, Directa, BG Saxo, Trading 212). |
 | [`docs/05-scenario-personale.md`](docs/05-scenario-personale.md) | Scenario personale: PC Windows sempre acceso, regime amministrato, capitale ~1.000 €/$, niente feed a pagamento. Costi reali Alpaca vs Directa, passaggio a strategie su barre giornaliere, percorso a gradi (paper → segnali con esecuzione manuale su Directa → automazione), configurazione Windows, domande aperte ai broker. |
 | [`docs/06-piano-operativo.md`](docs/06-piano-operativo.md) | **Piano operativo scelto**: segnali settimanali su azioni USA con esecuzione manuale su Directa (regime amministrato) e 1.000 €. Perché niente micro futures, numeri delle commissioni, varianti A/B/C da testare in paper, strategia, cancello per il live, routine settimanale e ticket, PC Windows Pro senza UPS, prompt v3 per Claude Code, calendario. |
+| [`docs/07-manuale-motore.md`](docs/07-manuale-motore.md) | **Manuale del motore di segnali** (codice in `segnali/`): installazione su Windows, primi passi, fase paper, fase live con registro delle esecuzioni, parametri, cosa dimostrano i test, limiti noti. |
+
+## Motore di segnali (codice)
+
+Implementa il piano di `docs/06`: ogni sabato produce i ticket per la settimana (azioni USA, una
+posizione alla volta, stop obbligatorio), ogni sera controlla stop e dati, e durante il test esegue
+gli stessi ticket sul conto **paper** Alpaca. Non si collega mai al conto reale.
+
+```powershell
+.\windows\install.ps1                          # ambiente, pacchetti, test
+python backtest.py --source alpaca              # backtest con dati reali gratuiti
+python weekly.py --dry-run --positions none     # ticket di oggi, senza salvare né inviare
+```
+
+Istruzioni complete in [`docs/07-manuale-motore.md`](docs/07-manuale-motore.md).
 
 ## File di supporto
 
 - `.env.example` — modello del file delle chiavi (paper). Copialo in `.env`.
+- `requirements.txt` — pacchetti Python con versioni verificate.
+- `ledger/fills.example.csv` — esempio del registro delle esecuzioni manuali.
 - `.gitignore` — esclude segreti, log, stato e report.
 - `.claude/settings.json` — impedisce a Claude Code di leggere `.env` e i file di segreti.
 
