@@ -1,0 +1,21 @@
+# Segreti: non vanno MAI in git
+.env
+.env.*
+!.env.example
+*.env
+secrets/
+LIVE_ARMED
+
+# Dati di esecuzione del bot
+logs/
+state/
+reports/
+data/
+watchlist.csv
+HALTED
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
