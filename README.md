@@ -15,6 +15,7 @@ operatività automatica.
 | [`docs/02-guida-setup-paper-v2.md`](docs/02-guida-setup-paper-v2.md) | Guida migliorata, solo paper: setup per macOS/Linux e Windows, prompt di costruzione v2 per Claude Code, verifiche, prove di emergenza, automazione, valutazione. |
 | [`docs/03-da-paper-a-live.md`](docs/03-da-paper-a-live.md) | Guida dettagliata al passaggio paper → live automatico: fasi, criteri quantitativi, PDT, dati, costi, lucchetti nel codice, server e systemd, runbook, circuit breaker, incidenti, fiscalità per residenti in Italia. |
 | [`docs/04-fattibilita-italia-dati-piattaforme.md`](docs/04-fattibilita-italia-dati-piattaforme.md) | Fattibilità reale per una persona fisica residente in Italia (entità Alpaca, fine della regola PDT, ETF USA e PRIIPs, valuta, fisco), limiti del feed dati gratuito e impatto sulla strategia, confronto delle piattaforme compatibili (Alpaca, Interactive Brokers, Directa, BG Saxo, Trading 212). |
+| [`docs/05-scenario-personale.md`](docs/05-scenario-personale.md) | Scenario personale: PC Windows sempre acceso, regime amministrato, capitale ~1.000 €/$, niente feed a pagamento. Costi reali Alpaca vs Directa, passaggio a strategie su barre giornaliere, percorso a gradi (paper → segnali con esecuzione manuale su Directa → automazione), configurazione Windows, domande aperte ai broker. |
 
 ## File di supporto
 

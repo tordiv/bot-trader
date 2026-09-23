@@ -170,11 +170,11 @@ Python supportato, dati in tempo reale economici, regime fiscale amministrato.
 | Disponibile per residenti in Italia | Sì (via API, mercati USA) | Sì (tutti i clienti SEE serviti da IBKR Ireland dal 2024) | Sì (SIM italiana) | Sì (joint venture Banca Generali–Saxo) | Sì |
 | Regime fiscale | Dichiarativo | Dichiarativo | **Amministrato** | **Amministrato** | Dichiarativo **[verifica]** |
 | API | REST + WebSocket, SDK Python ufficiale | TWS API / IB Gateway (Python: `ib_async`), Web API | Socket TCP locali (porte 10001 dati, 10002 trading, 10003 storico) con **Darwin aperto** | OpenAPI di Saxo **[verifica disponibilità per clienti BG Saxo]** | REST in **beta** |
-| Paper / demo | Sì, nativo e gratuito | Sì (conto paper) | **[verifica]** | Sì (demo Saxo) **[verifica API]** | Sì (demo) |
-| Bracket / OCO nativi | **Sì** | **Sì** (ordini padre/figli) | Limit, market, stop, trailing, iceberg; bracket da gestire nel bot **[verifica]** | **[verifica]** | No: limit, stop, stop-limit, market; non idempotente sullo stop-limit |
+| Paper / demo | Sì, nativo e gratuito | Sì (conto paper) | Demo sì, ma **le API non si attivano sul demo**: serve un conto reale | Sì (demo Saxo) **[verifica API]** | Sì (demo) |
+| Bracket / OCO nativi | **Sì** | **Sì** (ordini padre/figli) | Limit, market, stop, trailing, iceberg; ordini condizionati (stop loss, OCO, OSO) gestiti dal server Directa; quali siano inviabili via API **[verifica]** | **[verifica]** | No: limit, stop, stop-limit, market; non idempotente sullo stop-limit |
 | Mercati | Solo USA | Globali (150+ mercati) | Italia, principali mercati UE e USA **[verifica]** | Globali | Molti, ma prodotto orientato all'investimento |
-| Commissioni azioni USA | $0 | Da ~$0,005/azione (min. ~$1) con IBKR Pro | A ordine **[verifica listino]** | A ordine, più alte **[verifica]** | $0 (costo del cambio a parte) |
-| Dati in tempo reale | IEX gratis; SIP ~$99/mese | Abbonamenti a pagamento: Level 1 USA in streaming circa $4,50/mese; il bundle snapshot da ~$10/mese è gratuito sopra ~$30 di commissioni mensili **[verifica]** | Inclusi/a pagamento secondo profilo **[verifica]** | **[verifica]** | Limitati |
+| Commissioni azioni USA | $0 | Da ~$0,005/azione (min. ~$1) con IBKR Pro | Circa $9 per ordine sugli USA; Borsa Italiana da 1,5 € (profilo variabile) o 5 € (fisso) **[verifica]** | A ordine, più alte **[verifica]** | $0 (costo del cambio a parte) |
+| Dati in tempo reale | IEX gratis; SIP ~$99/mese | Abbonamenti a pagamento: Level 1 USA in streaming circa $4,50/mese; il bundle snapshot da ~$10/mese è gratuito sopra ~$30 di commissioni mensili **[verifica]** | Quotazioni gratuite sulla piattaforma; Darwin desktop con API circa 60 €/mese (azzerato con ≥ 200 € di commissioni mensili) **[verifica]** | **[verifica]** | Limitati |
 | Esecuzione non presidiata | Ottima (solo chiavi API) | **Difficile**: IB Gateway richiede login con 2FA da telefono a ogni riavvio | Richiede Darwin aperto e loggato su un PC/VPS **Windows** | **[verifica]** (token OAuth con scadenza) | Buona |
 | Sforzo per adattare il bot | Nessuno (è la base) | Riscrivere `broker.py` e la parte dati; gestire connessione persistente | Riscrivere `broker.py`, gestire socket e bracket lato bot | Riscrivere `broker.py` | Riscrivere `broker.py` e gestire lo stop come ordine separato |
 | Adatta a questo bot | ✅ **Consigliata** | ✅ Buona per utenti esperti | ⚠️ Possibile, soprattutto per il vantaggio fiscale | ❓ Da verificare | ❌ Non per intraday |
@@ -197,10 +197,12 @@ intraday che sostituisce la PDT.
 le imposte) e una delle poche API documentate fra gli intermediari italiani. Funziona tramite la
 piattaforma **Darwin**, che deve restare aperta e con utente collegato: le applicazioni si collegano a
 socket TCP locali (dati, trading, storico). Per l'automazione serve quindi un PC o un VPS Windows
-sempre acceso con Darwin. Tipi d'ordine: limit, market, stop, trailing stop, iceberg; il bracket va
-costruito nel bot (entrata, poi stop e target, con cancellazione reciproca gestita da te), il che
-**aumenta il rischio operativo**: il bot diventa responsabile di un pezzo della protezione. Richiede la
-firma di un accordo per l'uso delle API. Commissioni e costi dati da verificare sul listino.
+sempre acceso con Darwin. Tipi d'ordine: limit, market, stop, trailing stop, iceberg; gli ordini
+condizionati (stop loss, OCO, OSO) sono gestiti dal server Directa anche a piattaforma chiusa, ma va
+verificato quali si possono inviare via API: se il bracket va costruito nel bot, **aumenta il rischio
+operativo**. Richiede la firma di un accordo per l'uso delle API, non funziona su conto demo, e la
+piattaforma Darwin desktop costa circa 60 €/mese (azzerati con almeno 200 € di commissioni nel mese
+precedente) **[verifica]**. Per capitali piccoli vedi [05](05-scenario-personale.md).
 
 **BG Saxo — regime amministrato, API da chiarire.** Saxo ha una OpenAPI matura; se e come sia
 utilizzabile dai clienti retail di BG Saxo in Italia va chiesto al broker. Commissioni in genere più
