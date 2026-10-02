@@ -1,10 +1,12 @@
 // Genera src/data/initialPlayers.json, src/data/goalkeeperMatrix.json e src/data/teams.json
 // Fonti: rose "Current squad" e infobox giocatori da Wikipedia (cache in .cache/), calendario
 // ufficiale 2026/27 da openfootball (football.json), curatela fantacalcistica in curation.mjs.
+// Listone ufficiale: fonti/Quotazioni_Fantacalcio_Stagione_2026_27.xlsx (Leghe Fantacalcio).
 // Uso:  node parse-squads.mjs && node fetch-players.mjs && node fetch-crests.mjs && node build-data.mjs
 import fs from 'node:fs';
 import { TEAMS, parseSquad } from './parse-squads.mjs';
-import { CURATION } from './curation.mjs';
+import { ALIASES, CURATION } from './curation.mjs';
+import { matchIndex, readListone } from './listone.mjs';
 
 const OUT = '../src/data';
 const CAL_NAMES = {
@@ -16,7 +18,7 @@ const CAL_NAMES = {
 };
 const crests = JSON.parse(fs.readFileSync(`${OUT}/crests.json`, 'utf8'));
 
-const norm = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const normId = (s) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const pfile = (a) => `.cache/players/${encodeURIComponent(a).replace(/%/g, '_')}.wiki`;
 
 function infobox(article) {
@@ -119,59 +121,82 @@ const lo = Math.min(...vals), hi = Math.max(...vals);
 for (const a of slugs) for (const b of slugs) if (matrix[a][b] !== null) matrix[a][b] = Math.round(((matrix[a][b] - lo) / (hi - lo)) * 100) / 10;
 
 // ---------- giocatori ----------
+// Fonte ufficiale: listone Leghe Fantacalcio (Id, ruolo, ruolo Mantra, Qt.A/Qt.I, FVM).
+// Arricchimento: rose e infobox Wikipedia (età, presenze, gol, numero) + curatela (gerarchie).
 const BASE = {
   P: [14, 11, 9, 7, 6], D: [9, 7, 6, 5, 4], C: [10, 8, 6, 5, 4], A: [16, 13, 10, 8, 7],
 };
-const ROLE = { GK: 'P', DF: 'D', MF: 'C', FW: 'A' };
+const RM_DETAIL = {
+  Por: 'Portiere', Dc: 'Difensore centrale', B: 'Difensore centrale', Dd: 'Terzino / Esterno', Ds: 'Terzino / Esterno',
+  E: 'Esterno a tutta fascia', M: 'Mediano / Regista', C: 'Centrocampista', T: 'Trequartista', W: 'Esterno offensivo',
+  A: 'Seconda punta', Pc: 'Punta centrale',
+};
+function detailFromRm(ruolo, rm, fallback) {
+  const first = String(rm || '').split(';')[0].trim();
+  if (ruolo === 'D') return first === 'Dc' || first === 'B' ? 'Difensore centrale' : first ? 'Terzino / Esterno' : fallback;
+  if (ruolo === 'A' && first === 'W') return 'Ala / Esterno';
+  return RM_DETAIL[first] ?? fallback;
+}
+const listone = readListone();
+const SLUG_BY_NAME = Object.fromEntries(TEAMS.map(([slug, nome]) => [nome, slug]));
 const players = [];
 const missing = [];
+const ids = new Set();
 for (const [slug, , title] of TEAMS) {
   const cur = CURATION[slug];
   const squad = parseSquad(fs.readFileSync(`.cache/${title}.wiki`, 'utf8'));
-  const names = new Set(squad.map((p) => p.name));
-  for (const list of [cur.xi, cur.bal, cur.rig, cur.pun, cur.cor, Object.keys(cur.qt)]) for (const n of list) if (!names.has(n)) missing.push(`${slug}: ${n}`);
-  for (const sp of squad) {
-    const ib = infobox(sp.article);
-    const ruolo = cur.role?.[sp.name] || ROLE[sp.pos] || 'C';
-    const stato = cur.xi.includes(sp.name) ? 'titolare' : cur.bal.includes(sp.name) ? 'ballottaggio' : 'riserva';
+  const rows = listone.filter((r) => SLUG_BY_NAME[r.squadra] === slug);
+  const matched = new Map(); // nome wiki -> riga listone
+  const rowsOnly = [];
+  for (const r of rows) {
+    const i = matchIndex(r.nome, squad, ALIASES[slug] ?? {});
+    if (i >= 0) matched.set(squad[i].name, r);
+    else rowsOnly.push(r);
+  }
+  const inGame = new Set(matched.keys());
+  for (const list of [cur.xi, cur.bal, cur.rig, cur.pun, cur.cor]) for (const n of list) if (!inGame.has(n)) missing.push(`${slug}: ${n}`);
+  const entries = [...[...matched].map(([wikiName, r]) => ({ sp: squad.find((p) => p.name === wikiName), r })), ...rowsOnly.map((r) => ({ sp: null, r }))];
+  for (const { sp, r } of entries) {
+    const name = sp ? sp.name : r.nome;
+    const ib = sp ? infobox(sp.article) : {};
+    const ruolo = r.r;
+    const stato = cur.xi.includes(name) ? 'titolare' : cur.bal.includes(name) ? 'ballottaggio' : 'riserva';
     const eta = ib.born ? 2026 - ib.born : null;
-    let qt = BASE[ruolo][cur.tier - 1];
-    if (stato === 'ballottaggio') qt *= 0.55;
-    if (stato === 'riserva') qt = ruolo === 'P' ? 1 : Math.max(1, qt * 0.22);
-    if ((ib.natCaps || 0) >= 30) qt *= 1.15;
-    if (ruolo === 'A' && ib.apps > 40 && ib.goals / ib.apps > 0.35) qt *= 1.2;
-    if (eta !== null && eta <= 20 && stato === 'riserva') qt = 1;
-    if (cur.qt[sp.name]) qt = cur.qt[sp.name];
-    qt = Math.max(1, Math.min(45, Math.round(qt)));
-    const rig = cur.rig[0] === sp.name ? 1 : cur.rig[1] === sp.name ? 2 : 0;
-    const dettaglio = detailFor(ruolo, ib.posRaw || '', sp.name);
+    const qt = Math.max(1, Math.round(r.qtA));
+    const rig = cur.rig[0] === name ? 1 : cur.rig[1] === name ? 2 : 0;
+    const dettaglio = detailFromRm(ruolo, r.rm, sp ? detailFor(ruolo, ib.posRaw || '', name) : '—');
     // media voto stimata (base per il modificatore di difesa classico)
     let mv = null;
     if (ruolo === 'D' || ruolo === 'P') {
       mv = [6.27, 6.2, 6.12, 6.05, 6.0][cur.tier - 1];
       if (dettaglio === 'Difensore centrale') mv += 0.04;
-      if (dettaglio === 'Terzino / Esterno') mv -= 0.03;
+      if (dettaglio !== 'Difensore centrale' && ruolo === 'D') mv -= 0.03;
       if (ruolo === 'P') mv -= 0.05;
       if (stato === 'ballottaggio') mv -= 0.07;
       if (stato === 'riserva') mv -= 0.12;
       // a parità di squadra e ruolo, i più quotati prendono voti più alti
-      mv += Math.min(0.1, (qt - BASE[ruolo][cur.tier - 1]) * 0.008);
+      mv += Math.max(-0.05, Math.min(0.1, (qt - BASE[ruolo][cur.tier - 1]) * 0.008));
       mv = Math.round(mv * 100) / 100;
     }
+    let id = `${slug}-${normId(name)}`;
+    if (ids.has(id)) id += `-${r.id}`;
+    ids.add(id);
     players.push({
-      id: `${slug}-${norm(sp.name)}`,
-      nome: sp.name,
+      id,
+      nome: name,
       squadra: slug,
       ruolo,
       dettaglio,
       qt,
-      fvm: Math.round(qt * 2 * (1 + qt / 40)),
+      qtI: Math.round(r.qtI ?? r.qtA),
+      fvm: Math.round(r.fvm ?? qt),
+      rm: r.rm ?? '',
       stato,
       rigorista: rig,
-      punizioni: cur.pun.includes(sp.name),
-      corner: cur.cor.includes(sp.name),
-      numero: sp.no,
-      nazionalita: sp.nat,
+      punizioni: cur.pun.includes(name),
+      corner: cur.cor.includes(name),
+      numero: sp?.no ?? null,
+      nazionalita: sp?.nat ?? '',
       eta,
       altezza: ib.height || null,
       presenzeClub: ib.lastApps || 0,
@@ -180,15 +205,19 @@ for (const [slug, , title] of TEAMS) {
       golCarriera: ib.goals || 0,
       presenzeNazionale: ib.natCaps || 0,
       mvStimata: mv,
-      prestito: /loan/i.test(sp.other) ? 'In prestito' : null,
+      prestito: sp && /loan/i.test(sp.other) ? 'In prestito' : null,
+      fantaId: r.id,
+      nomeListone: r.nome,
     });
   }
 }
-if (missing.length) { console.error('Nomi di curatela non trovati nelle rose:\n' + missing.join('\n')); process.exitCode = 1; }
+if (missing.length) { console.error('Nomi di curatela non presenti nel listone:\n' + missing.join('\n')); process.exitCode = 1; }
+const unmapped = listone.filter((r) => !SLUG_BY_NAME[r.squadra]);
+if (unmapped.length) { console.error('Squadre del listone sconosciute:', [...new Set(unmapped.map((r) => r.squadra))]); process.exitCode = 1; }
 const order = { P: 0, D: 1, C: 2, A: 3 };
 players.sort((a, b) => order[a.ruolo] - order[b.ruolo] || b.qt - a.qt || a.nome.localeCompare(b.nome));
 
-const meta = { stagione: '2026/27', generato: new Date().toISOString().slice(0, 10), fonti: ['Wikipedia (rose e infobox)', 'openfootball/football.json (calendario)', 'Curatela War Room (rigoristi, titolari, quotazioni stimate)'] };
+const meta = { stagione: '2026/27', generato: new Date().toISOString().slice(0, 10), listone: 'Quotazioni Fantacalcio Stagione 2026/27 (Leghe Fantacalcio)', fonti: ['Listone ufficiale Leghe Fantacalcio (ruoli, Qt.A, Qt.I, FVM)', 'Wikipedia (rose e infobox)', 'openfootball/football.json (calendario)', 'Curatela War Room (rigoristi, titolari, ballottaggi)'] };
 fs.writeFileSync(`${OUT}/initialPlayers.json`, JSON.stringify({ meta, players }));
 fs.writeFileSync(`${OUT}/goalkeeperMatrix.json`, JSON.stringify({ meta, squadre: slugs, matrice: matrix }, null, 1));
 fs.writeFileSync(`${OUT}/teams.json`, JSON.stringify(teams));

@@ -147,7 +147,7 @@ function Importer() {
           <p>
             Database {DATA_META.stagione}: <b className="text-slate-200">{players.length}</b> giocatori · generato il {DATA_META.generato}
           </p>
-          <p className="text-[11px]">Fonti: {DATA_META.fonti.join(' · ')}. Quotazioni e gerarchie sono stime pre-asta: importa il listone ufficiale per allinearle.</p>
+          <p className="text-[11px]">Fonti: {DATA_META.fonti.join(' · ')}. Ruoli, Qt.A, Qt.I e FVM vengono dal listone ufficiale; titolari, rigoristi e ballottaggi sono stime pre-asta. Puoi reimportare un listone aggiornato in qualsiasi momento.</p>
           <p className="text-[11px]">Tutto viene salvato automaticamente nel browser (localStorage): ricaricare o chiudere la pagina non perde l'asta.</p>
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button type="button" onClick={download} className="flex items-center justify-center gap-1 rounded-lg bg-sky-500/20 py-1.5 font-semibold text-sky-200 ring-1 ring-sky-500/40 hover:bg-sky-500/30">
@@ -317,6 +317,7 @@ function Table() {
                         <div className={cn('truncate font-semibold text-slate-100', o && 'line-through')}>{p.nome}</div>
                         <div className="text-[10px] text-slate-500">
                           {p.dettaglio}
+                          {p.rm && ` · ${p.rm}`}
                           {p.nomeListone && p.nomeListone !== p.nome && ` · listone: ${p.nomeListone}`}
                         </div>
                       </div>
@@ -333,7 +334,10 @@ function Table() {
                   <td className="px-2">
                     <Gerarchie p={p} />
                   </td>
-                  <td className="px-2 text-right font-mono font-bold">{p.qt}</td>
+                  <td className="px-2 text-right font-mono font-bold">
+                    {p.qt}
+                    {p.qtI != null && p.qtI !== p.qt && <span className={cn('ml-1 text-[10px]', p.qt > p.qtI ? 'text-emerald-400' : 'text-rose-400')}>{p.qt > p.qtI ? '▲' : '▼'}</span>}
+                  </td>
                   <td className="px-2 text-right font-mono text-slate-400">{p.fvm}</td>
                   <td className="px-2 text-right font-mono text-slate-400">{p.mvStimata?.toFixed(2) ?? '–'}</td>
                   <td className="px-2 text-right font-mono text-slate-400">{p.eta ?? '–'}</td>

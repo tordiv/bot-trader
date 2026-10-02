@@ -19,11 +19,11 @@ Applicazione web a pagina singola (SPA) per l'**asta del Fantacalcio** (regolame
 
 ## Dati
 
-- `src/data/initialPlayers.json`: 572 giocatori delle 20 rose 2026/27 (Atalanta, Bologna, Cagliari, Como, Fiorentina, Frosinone, Genoa, Inter, Juventus, Lazio, Lecce, Milan, Monza, Napoli, Parma, Roma, Sassuolo, Torino, Udinese, Venezia) con ruolo, ruolo dettagliato (centrale/terzino…), quotazione e FVM stimati, titolare/ballottaggio/riserva, 1° e 2° rigorista, punizioni, corner, età, presenze e gol.
+- `src/data/initialPlayers.json`: i 535 giocatori del **listone ufficiale Leghe Fantacalcio 2026/27** (`scripts/fonti/Quotazioni_Fantacalcio_Stagione_2026_27.xlsx`) delle 20 squadre (Atalanta, Bologna, Cagliari, Como, Fiorentina, Frosinone, Genoa, Inter, Juventus, Lazio, Lecce, Milan, Monza, Napoli, Parma, Roma, Sassuolo, Torino, Udinese, Venezia) con Id, ruolo Classic e Mantra, Qt.A, Qt.I, FVM; arricchiti con ruolo dettagliato (centrale/terzino…), titolare/ballottaggio/riserva, 1° e 2° rigorista, punizioni, corner, età, presenze e gol.
 - `src/data/goalkeeperMatrix.json`: coefficiente 0–10 per ogni coppia di squadre, calcolato sul calendario ufficiale 2026/27.
 - `public/crests/*.svg`: stemmi delle 20 squadre (con scudo generico di riserva se un file non si carica).
 
-Le rose arrivano dalle pagine Wikipedia dei club (sezione *Current squad*), il calendario da [openfootball/football.json](https://github.com/openfootball/football.json). Titolari, rigoristi e quotazioni sono **stime pre-asta** in `scripts/curation.mjs`: importa il listone ufficiale per allineare quotazioni e ruoli (note, pupilli e prezzi obiettivo vengono conservati).
+Ruoli e quotazioni arrivano dal listone ufficiale; età, presenze e gol dalle pagine Wikipedia dei club (sezione *Current squad*), abbinate per cognome e squadra (alias in `scripts/curation.mjs`); il calendario da [openfootball/football.json](https://github.com/openfootball/football.json). Titolari, ballottaggi e rigoristi sono **stime pre-asta** in `scripts/curation.mjs`. Per aggiornare le quotazioni basta sostituire il file in `scripts/fonti/` e rilanciare `npm run data`, oppure importare il nuovo listone dall'app (note, pupilli e prezzi obiettivo vengono conservati).
 
 Per rigenerare i dati (serve rete):
 

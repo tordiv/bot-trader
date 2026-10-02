@@ -11,7 +11,9 @@ export interface Player {
   ruolo: Ruolo
   dettaglio: string
   qt: number
+  qtI?: number // quotazione iniziale del listone
   fvm: number
+  rm?: string // ruolo Mantra (es. "Dc;B")
   stato: Stato
   rigorista: 0 | 1 | 2
   punizioni: boolean

@@ -2,10 +2,12 @@
  "meta": {
   "stagione": "2026/27",
   "generato": "2026-10-02",
+  "listone": "Quotazioni Fantacalcio Stagione 2026/27 (Leghe Fantacalcio)",
   "fonti": [
+   "Listone ufficiale Leghe Fantacalcio (ruoli, Qt.A, Qt.I, FVM)",
    "Wikipedia (rose e infobox)",
    "openfootball/football.json (calendario)",
-   "Curatela War Room (rigoristi, titolari, quotazioni stimate)"
+   "Curatela War Room (rigoristi, titolari, ballottaggi)"
   ]
  },
  "squadre": [

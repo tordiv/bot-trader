@@ -211,7 +211,14 @@ export const useStore = create<State>()(
     }),
     {
       name: 'fanta-warroom-2627',
-      version: 1,
+      // v2: database allineato al listone ufficiale 2026/27 -> sostituisce i giocatori salvati,
+      // mantenendo acquisti, note, pupilli, coppie e impostazioni (gli id restano gli stessi)
+      version: 2,
+      migrate: (persisted, from) => {
+        const s = persisted as Partial<State>
+        if (from < 2) return { ...s, players: INITIAL_PLAYERS }
+        return s
+      },
       storage: createJSONStorage(() => localStorage),
       partialize: (s) => ({
         players: s.players,
