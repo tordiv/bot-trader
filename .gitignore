@@ -23,3 +23,7 @@ __pycache__/
 # Dati personali del motore di segnali
 tickets/
 ledger/fills.csv
+
+# Fantacalcio War Room (app web in fantacalcio/): i dati seed vanno versionati
+!fantacalcio/src/data/
+fantacalcio/scripts/.cache/
