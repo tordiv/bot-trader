@@ -20,6 +20,8 @@ Applicazione web a pagina singola (SPA) per l'**asta del Fantacalcio** (regolame
 ## Dati
 
 - `src/data/initialPlayers.json`: i 535 giocatori del **listone ufficiale Leghe Fantacalcio 2026/27** (`scripts/fonti/Quotazioni_Fantacalcio_Stagione_2026_27.xlsx`) delle 20 squadre (Atalanta, Bologna, Cagliari, Como, Fiorentina, Frosinone, Genoa, Inter, Juventus, Lazio, Lecce, Milan, Monza, Napoli, Parma, Roma, Sassuolo, Torino, Udinese, Venezia) con Id, ruolo Classic e Mantra, Qt.A, Qt.I, FVM; arricchiti con ruolo dettagliato (centrale/terzino…), titolare/ballottaggio/riserva, 1° e 2° rigorista, punizioni, corner, età, presenze e gol.
+- **Gerarchie reali**: titolare / ballottaggio / riserva ricavati dai match report delle giornate giocate (`scripts/fonti/partite.json`, 50 partite delle giornate 1–5 da ESPN: formazioni, cambi con minuto, gol, assist, rigori, cartellini). Si contano solo le giornate in cui il giocatore era convocato e, per chi è arrivato a fine mercato, solo quelle nel nuovo club. Chi era già infortunato durante quelle giornate mantiene la gerarchia pre-stagione (segnato con `*`). I rigoristi effettivi diventano 1° rigorista.
+- **Indisponibili**: infortunati di Serie A da Transfermarkt (`scripts/fonti/infortuni.json`) con tipo di infortunio, data e rientro previsto (stimato dal tipo di infortunio se manca), classificati per durata: breve (≤ 2 settimane), medio (2–6), lungo (6 settimane–4 mesi), lunghissimo (> 4 mesi), con le giornate di calendario che salteranno. Squalifiche dalle espulsioni nell'ultima giornata, diffidati a 4 ammonizioni.
 - `src/data/goalkeeperMatrix.json`: coefficiente 0–10 per ogni coppia di squadre, calcolato sul calendario ufficiale 2026/27.
 - `public/crests/*.svg`: stemmi delle 20 squadre (con scudo generico di riserva se un file non si carica).
 
@@ -28,7 +30,8 @@ Ruoli e quotazioni arrivano dal listone ufficiale; età, presenze e gol dalle pa
 Per rigenerare i dati (serve rete):
 
 ```bash
-npm run data
+npm run gerarchie   # solo partite giocate + infortunati, poi ricalcolo (da rilanciare dopo ogni giornata)
+npm run data        # tutto, comprese rose Wikipedia e stemmi
 ```
 
 ## Sviluppo

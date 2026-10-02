@@ -4,7 +4,7 @@ import { useStore } from '../store/useStore'
 import { useMyRoster, useOwnership, useBuyerName } from '../store/hooks'
 import { GK_MATRIX, TEAMS, TEAM_BY_SLUG, bestPartners, gkColor, teamName } from '../lib/data'
 import { cn } from '../lib/utils'
-import { Card, Crest, StarButton, StatoBadge } from '../components/ui'
+import { Card, Crest, Disponibilita, Forma, StarButton, StatoBadge } from '../components/ui'
 
 export default function GoalkeeperGrid() {
   const roster = useMyRoster()
@@ -125,6 +125,8 @@ function PartnerPanel({ sel, partners, onPick, active }: { sel: string | null; p
               <button type="button" disabled={!!o} onClick={() => openQuick(p.id)} className="flex-1 truncate text-left font-semibold">
                 {p.nome}
               </button>
+              <Disponibilita p={p} />
+              <Forma p={p} compact />
               <StatoBadge s={p.stato} />
               <span className="w-6 text-right font-mono text-slate-400">{p.qt}</span>
               {o && <span className="text-[10px] text-rose-300">{name(o.buyer)}</span>}
@@ -151,6 +153,8 @@ function PartnerPanel({ sel, partners, onPick, active }: { sel: string | null; p
                       <button type="button" disabled={!!o} onClick={() => openQuick(p.id)} className="flex-1 truncate text-left text-slate-300 hover:text-white">
                         {p.nome}
                       </button>
+                      <Disponibilita p={p} />
+                      <Forma p={p} compact />
                       <span className="text-[10px] text-slate-500">{p.stato}</span>
                       <span className="w-6 text-right font-mono text-slate-400">{p.qt}</span>
                     </div>

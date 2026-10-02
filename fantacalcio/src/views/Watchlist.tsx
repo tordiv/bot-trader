@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react'
-import { Link2, Plus, Shuffle, Sparkles, Trash2 } from 'lucide-react'
+import { HeartPulse, Link2, Plus, Shuffle, Sparkles, Trash2 } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { useBuyerName, useOwnership, usePlayerMap } from '../store/hooks'
 import { prezzoConsigliato } from '../lib/calc'
 import { TEAMS } from '../lib/data'
 import { cn } from '../lib/utils'
-import { Card, Crest, Gerarchie, RoleBadge, StarButton, StatoBadge, TagChips } from '../components/ui'
+import { infortunioTesto } from '../lib/infortuni'
+import { Card, Crest, Disponibilita, Forma, Gerarchie, RoleBadge, StarButton, StatoBadge, TagChips } from '../components/ui'
 import PlayerPicker from '../components/PlayerPicker'
-import { RUOLI, TAGS, type Player, type Tag } from '../types'
+import { DURATA_LABEL, RUOLI, TAGS, type Durata, type Player, type Tag } from '../types'
 import { usePairAlerts } from '../store/pairs'
 
 export default function Watchlist() {
@@ -18,6 +19,7 @@ export default function Watchlist() {
         <Ballottaggi />
       </div>
       <div className="space-y-4 xl:col-span-4">
+        <Infermeria />
         <Pairs />
       </div>
     </div>
@@ -132,8 +134,12 @@ function Ballottaggi() {
                     <StarButton id={p.id} size={12} />
                     <RoleBadge r={p.ruolo} className="h-4 w-4 text-[9px]" />
                     <span className="font-semibold text-slate-200">{p.nome}</span>
+                    <Disponibilita p={p} />
                     {rival && <span className="truncate text-slate-500">vs {rival.nome}</span>}
-                    <span className="ml-auto font-mono text-slate-400">{p.qt}</span>
+                    <span className="ml-auto">
+                      <Forma p={p} compact />
+                    </span>
+                    <span className="w-5 text-right font-mono text-slate-400">{p.qt}</span>
                   </div>
                 )
               })}
@@ -246,5 +252,67 @@ function Pairs() {
         </ul>
       </Card>
     </>
+  )
+}
+
+const DURATE: Durata[] = ['breve', 'medio', 'lungo', 'stagione']
+const DURATA_COLOR: Record<Durata, string> = { breve: 'text-yellow-300', medio: 'text-orange-300', lungo: 'text-rose-300', stagione: 'text-rose-200' }
+
+/** Indisponibili raggruppati per durata dello stop. */
+function Infermeria() {
+  const players = useStore((s) => s.players)
+  const owned = useOwnership()
+  const [soloRilevanti, setSoloRilevanti] = useState(true)
+  const ko = players.filter((p) => (p.infortunio || p.squalifica) && (!soloRilevanti || p.stato !== 'riserva' || p.qt >= 5))
+  return (
+    <Card
+      title={`Infermeria (${ko.length})`}
+      icon={<HeartPulse size={16} className="text-rose-400" />}
+      actions={
+        <label className="flex items-center gap-1 text-xs text-slate-400">
+          <input type="checkbox" checked={soloRilevanti} onChange={(e) => setSoloRilevanti(e.target.checked)} /> solo rilevanti
+        </label>
+      }
+    >
+      <div className="max-h-[520px] space-y-3 overflow-y-auto">
+        {DURATE.map((d) => {
+          const list = ko.filter((p) => p.infortunio?.durata === d).sort((a, b) => b.qt - a.qt)
+          if (!list.length) return null
+          return (
+            <div key={d}>
+              <div className={cn('mb-1 text-[11px] font-bold uppercase tracking-wider', DURATA_COLOR[d])}>
+                {DURATA_LABEL[d]} · {list.length}
+              </div>
+              {list.map((p) => (
+                <div key={p.id} title={infortunioTesto(p)} className={cn('flex items-center gap-1.5 py-0.5 text-xs', owned.has(p.id) && 'opacity-40')}>
+                  <RoleBadge r={p.ruolo} className="h-4 w-4 text-[9px]" />
+                  <Crest slug={p.squadra} size={14} />
+                  <span className="flex-1 truncate font-semibold text-slate-200">{p.nome}</span>
+                  <span className="truncate text-[10px] text-slate-500">{p.infortunio!.tipo}</span>
+                  <Disponibilita p={p} />
+                  <span className="w-5 text-right font-mono text-slate-400">{p.qt}</span>
+                </div>
+              ))}
+            </div>
+          )
+        })}
+        {ko.some((p) => p.squalifica && !p.infortunio) && (
+          <div>
+            <div className="mb-1 text-[11px] font-bold uppercase tracking-wider text-red-300">Squalificati</div>
+            {ko
+              .filter((p) => p.squalifica && !p.infortunio)
+              .map((p) => (
+                <div key={p.id} className="flex items-center gap-1.5 py-0.5 text-xs">
+                  <RoleBadge r={p.ruolo} className="h-4 w-4 text-[9px]" />
+                  <Crest slug={p.squadra} size={14} />
+                  <span className="flex-1 truncate font-semibold text-slate-200">{p.nome}</span>
+                  <Disponibilita p={p} />
+                </div>
+              ))}
+          </div>
+        )}
+      </div>
+      <p className="mt-2 text-[11px] text-slate-500">Rientro dalla fonte o, se mancante, stimato dal tipo di infortunio (~). Le giornate saltate sono contate sul calendario.</p>
+    </Card>
   )
 }

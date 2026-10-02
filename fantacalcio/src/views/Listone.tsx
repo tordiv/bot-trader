@@ -6,10 +6,11 @@ import { fuzzyScore, prezzoConsigliato } from '../lib/calc'
 import { DATA_META, TEAMS, TEAM_SLUGS, teamName } from '../lib/data'
 import { detectColumns, mergeListone, parseFile, type ColumnMap, type Row } from '../lib/importer'
 import { cn } from '../lib/utils'
-import { Card, Crest, Gerarchie, RoleBadge, StarButton, StatoBadge, TagChips } from '../components/ui'
+import { Card, Crest, Disponibilita, Forma, Gerarchie, RoleBadge, StarButton, StatoBadge, TagChips } from '../components/ui'
 import { RUOLI, type Player, type Ruolo, type Stato } from '../types'
 
-type SortKey = 'qt' | 'fvm' | 'nome' | 'mv' | 'eta'
+type SortKey = 'qt' | 'fvm' | 'nome' | 'mv' | 'eta' | 'min'
+type Disp = '' | 'disponibili' | 'no-lunghi' | 'infortunati'
 
 export default function Listone() {
   return (
@@ -147,7 +148,10 @@ function Importer() {
           <p>
             Database {DATA_META.stagione}: <b className="text-slate-200">{players.length}</b> giocatori · generato il {DATA_META.generato}
           </p>
-          <p className="text-[11px]">Fonti: {DATA_META.fonti.join(' · ')}. Ruoli, Qt.A, Qt.I e FVM vengono dal listone ufficiale; titolari, rigoristi e ballottaggi sono stime pre-asta. Puoi reimportare un listone aggiornato in qualsiasi momento.</p>
+          <p className="text-[11px]">
+            Gerarchie dalle formazioni delle prime <b className="text-slate-200">{DATA_META.giornateAnalizzate}</b> giornate (match report del {DATA_META.partite}), infortunati aggiornati al {DATA_META.infortuni}.
+          </p>
+          <p className="text-[11px]">Fonti: {DATA_META.fonti.join(' · ')}. Ruoli, Qt.A, Qt.I e FVM vengono dal listone ufficiale; titolari e ballottaggi dalle formazioni reali (con * = infortunato, stato pre-stagione); rigoristi dalla curatela e dai rigori battuti. Puoi reimportare un listone aggiornato in qualsiasi momento.</p>
           <p className="text-[11px]">Tutto viene salvato automaticamente nel browser (localStorage): ricaricare o chiudere la pagina non perde l'asta.</p>
           <div className="grid grid-cols-2 gap-2 pt-1">
             <button type="button" onClick={download} className="flex items-center justify-center gap-1 rounded-lg bg-sky-500/20 py-1.5 font-semibold text-sky-200 ring-1 ring-sky-500/40 hover:bg-sky-500/30">
@@ -204,6 +208,7 @@ function Table() {
   const [team, setTeam] = useState('')
   const [stato, setStato] = useState<Stato | ''>('')
   const [onlyFree, setOnlyFree] = useState(false)
+  const [disp, setDisp] = useState<Disp>('')
   const [onlyRig, setOnlyRig] = useState(false)
   const [onlyStar, setOnlyStar] = useState(false)
   const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 }>({ k: 'qt', dir: -1 })
@@ -217,7 +222,11 @@ function Table() {
         (!stato || p.stato === stato) &&
         (!onlyFree || !owned.has(p.id)) &&
         (!onlyRig || p.rigorista > 0 || p.punizioni) &&
-        (!onlyStar || custom[p.id]?.starred),
+        (!onlyStar || custom[p.id]?.starred) &&
+        (!disp ||
+          (disp === 'disponibili' && !p.infortunio && !p.squalifica) ||
+          (disp === 'no-lunghi' && !(p.infortunio && ['lungo', 'stagione'].includes(p.infortunio.durata))) ||
+          (disp === 'infortunati' && !!p.infortunio)),
     )
     if (q.trim()) {
       list = list
@@ -227,13 +236,13 @@ function Table() {
         .map((x) => x.p)
       return list
     }
-    const val = (p: Player): number | string => (sort.k === 'nome' ? p.nome : sort.k === 'mv' ? p.mvStimata ?? 0 : sort.k === 'eta' ? p.eta ?? 0 : p[sort.k])
+    const val = (p: Player): number | string => (sort.k === 'nome' ? p.nome : sort.k === 'mv' ? p.mvStimata ?? 0 : sort.k === 'eta' ? p.eta ?? 0 : sort.k === 'min' ? p.stagione?.min ?? 0 : p[sort.k])
     return [...list].sort((a, b) => {
       const va = val(a)
       const vb = val(b)
       return (typeof va === 'string' ? va.localeCompare(vb as string) : va - (vb as number)) * sort.dir
     })
-  }, [players, ruoli, team, stato, onlyFree, onlyRig, onlyStar, owned, custom, q, sort])
+  }, [players, ruoli, team, stato, onlyFree, onlyRig, onlyStar, disp, owned, custom, q, sort])
 
   const th = (k: SortKey, label: string, cls = '') => (
     <th className={cn('cursor-pointer select-none px-2 py-2 font-semibold hover:text-slate-200', cls)} onClick={() => setSort((s) => ({ k, dir: s.k === k ? (s.dir === 1 ? -1 : 1) : k === 'nome' ? 1 : -1 }))}>
@@ -272,8 +281,14 @@ function Table() {
           <option value="ballottaggio">Ballottaggi</option>
           <option value="riserva">Riserve</option>
         </select>
+        <select value={disp} onChange={(e) => setDisp(e.target.value as Disp)} className="rounded-lg border border-slate-700 bg-slate-800 px-2 py-1.5 text-xs">
+          <option value="">Infortunati: tutti</option>
+          <option value="disponibili">Solo arruolabili</option>
+          <option value="no-lunghi">Escludi stop lunghi</option>
+          <option value="infortunati">Solo infortunati</option>
+        </select>
         {[
-          [onlyFree, setOnlyFree, 'Disponibili'],
+          [onlyFree, setOnlyFree, 'Liberi'],
           [onlyRig, setOnlyRig, 'Rigori/punizioni'],
           [onlyStar, setOnlyStar, 'Pupilli'],
         ].map(([v, set, l]) => (
@@ -283,7 +298,7 @@ function Table() {
         ))}
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[1100px] text-sm">
+        <table className="w-full min-w-[1250px] text-sm">
           <thead className="sticky top-0 bg-slate-900 text-[10px] uppercase tracking-wider text-slate-500">
             <tr className="text-left">
               <th className="w-8" />
@@ -291,6 +306,7 @@ function Table() {
               <th className="px-2 font-semibold">Squadra</th>
               <th className="px-2 font-semibold">Stato</th>
               <th className="px-2 font-semibold">Gerarchie</th>
+              {th('min', `G1–${DATA_META.giornateAnalizzate}`)}
               {th('qt', 'Qt', 'text-right')}
               {th('fvm', 'FVM', 'text-right')}
               {th('mv', 'MV st.', 'text-right')}
@@ -314,7 +330,10 @@ function Table() {
                     <div className="flex items-center gap-2">
                       <RoleBadge r={p.ruolo} />
                       <div className="min-w-0">
-                        <div className={cn('truncate font-semibold text-slate-100', o && 'line-through')}>{p.nome}</div>
+                        <div className="flex items-center gap-1.5">
+                          <span className={cn('truncate font-semibold text-slate-100', o && 'line-through')}>{p.nome}</span>
+                          <Disponibilita p={p} />
+                        </div>
                         <div className="text-[10px] text-slate-500">
                           {p.dettaglio}
                           {p.rm && ` · ${p.rm}`}
@@ -328,11 +347,15 @@ function Table() {
                       <Crest slug={p.squadra} size={18} /> {teamName(p.squadra)}
                     </span>
                   </td>
-                  <td className="px-2">
+                  <td className="px-2" title={p.statoFonte === 'curatela' ? 'Infortunato durante le giornate giocate: stato dalla gerarchia pre-stagione' : `Da formazioni e cambi delle prime ${DATA_META.giornateAnalizzate} giornate`}>
                     <StatoBadge s={p.stato} />
+                    {p.statoFonte === 'curatela' && <span className="ml-0.5 text-[10px] text-slate-500">*</span>}
                   </td>
                   <td className="px-2">
                     <Gerarchie p={p} />
+                  </td>
+                  <td className="px-2">
+                    <Forma p={p} />
                   </td>
                   <td className="px-2 text-right font-mono font-bold">
                     {p.qt}

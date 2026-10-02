@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react'
-import { Crosshair, Flag, Shield, Star, Target } from 'lucide-react'
-import type { Player, Ruolo, Stato } from '../types'
-import { TAGS } from '../types'
+import { Ban, Crosshair, Flag, Shield, Star, Target } from 'lucide-react'
+import type { Durata, Player, Ruolo, Stato } from '../types'
+import { DURATA_LABEL, TAGS } from '../types'
+import { fmtData, infortunioTesto } from '../lib/infortuni'
 import { TEAM_BY_SLUG, teamName } from '../lib/data'
 import { asset, cn } from '../lib/utils'
 import { useStore } from '../store/useStore'
@@ -140,9 +141,68 @@ export function PlayerLine({ p, right, onClick, dim }: { p: Player; right?: Reac
           <span>·</span>
           <span>Qt {p.qt}</span>
           <Gerarchie p={p} />
+          <Disponibilita p={p} />
         </div>
       </div>
       {right}
     </div>
+  )
+}
+
+const DURATA_STYLE: Record<Durata, string> = {
+  breve: 'bg-yellow-500/15 text-yellow-200 ring-yellow-500/40',
+  medio: 'bg-orange-500/20 text-orange-200 ring-orange-500/40',
+  lungo: 'bg-rose-500/25 text-rose-200 ring-rose-500/50',
+  stagione: 'bg-rose-900/60 text-rose-100 ring-rose-400/60',
+}
+const DURATA_SHORT: Record<Durata, string> = { breve: 'INF', medio: 'INF', lungo: 'INF', stagione: 'OUT' }
+
+/** Badge indisponibilità: colore per durata, giornate saltate; più squalifica/diffida. */
+export function Disponibilita({ p, full = false }: { p: Player; full?: boolean }) {
+  const i = p.infortunio
+  return (
+    <span className="inline-flex items-center gap-1">
+      {i && (
+        <span title={infortunioTesto(p)} className={cn('inline-flex items-center gap-0.5 whitespace-nowrap rounded px-1 text-[10px] font-bold ring-1', DURATA_STYLE[i.durata])}>
+          <span aria-hidden>✚</span>
+          {full ? `${DURATA_LABEL[i.durata]} · ${i.stimato ? '~' : ''}${fmtData(i.fino)}` : i.giornate > 0 ? `${DURATA_SHORT[i.durata]} ${i.giornate}g` : 'recupera'}
+        </span>
+      )}
+      {p.squalifica ? (
+        <span title={`Squalificato per ${p.squalifica} giornata (espulso nell'ultima)`} className="inline-flex items-center gap-0.5 rounded bg-red-600/30 px-1 text-[10px] font-bold text-red-100 ring-1 ring-red-500/50">
+          <Ban size={10} />
+          SQ
+        </span>
+      ) : null}
+      {p.diffidato && <span title="Diffidato (4 ammonizioni)" className="rounded bg-yellow-400/20 px-1 text-[10px] font-bold text-yellow-200 ring-1 ring-yellow-400/40">DIFF</span>}
+    </span>
+  )
+}
+
+const SEQ_STYLE: Record<string, string> = {
+  T: 'bg-emerald-500 text-emerald-950',
+  S: 'bg-amber-400 text-amber-950',
+  P: 'bg-slate-600 text-slate-300',
+  '-': 'bg-slate-800 text-slate-600',
+  x: 'bg-violet-500/60 text-violet-100',
+}
+const SEQ_LABEL: Record<string, string> = { T: 'titolare', S: 'subentrato', P: 'in panchina, non entrato', '-': 'non convocato', x: "con l'ex squadra" }
+
+/** Striscia G1..Gn delle giornate giocate. */
+export function Forma({ p, compact = false }: { p: Player; compact?: boolean }) {
+  const st = p.stagione
+  if (!st) return null
+  const title = `${st.tit} da titolare, ${st.sub} da subentrato, ${st.min}' · ${st.gol} gol, ${st.assist} assist${st.exClub ? ` · prime giornate con ${teamName(st.exClub)}` : ''}`
+  return (
+    <span className="inline-flex items-center gap-1" title={title}>
+      <span className="inline-flex gap-px">
+        {st.seq.split('').map((c, i) => (
+          <span key={i} title={`G${i + 1}: ${SEQ_LABEL[c] ?? c}`} className={cn('inline-flex items-center justify-center rounded-[2px] font-mono font-bold', compact ? 'h-3 w-2.5 text-[7px]' : 'h-4 w-3.5 text-[9px]', SEQ_STYLE[c] ?? SEQ_STYLE['-'])}>
+            {compact ? '' : c === '-' ? '' : c}
+          </span>
+        ))}
+      </span>
+      {!compact && <span className="font-mono text-[10px] text-slate-400">{st.min}'</span>}
+    </span>
   )
 }
