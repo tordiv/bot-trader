@@ -1,0 +1,666 @@
+{
+ "fonte": "https://www.transfermarkt.it/serie-a/verletztespieler/wettbewerb/IT1/plus/1",
+ "scaricato": "2026-10-02",
+ "infortunati": [
+  {
+   "nome": "Odilon Kossounou",
+   "tmId": "644771",
+   "ruolo": "Difensore centrale",
+   "squadra": "Atalanta",
+   "eta": 25,
+   "infortunio": "Infortunio alla coscia",
+   "dal": "2026-09-19",
+   "fino": null
+  },
+  {
+   "nome": "Adrian Przyborek",
+   "tmId": "1018395",
+   "ruolo": "Trequartista",
+   "squadra": "SS Lazio",
+   "eta": 19,
+   "infortunio": "Infortunio agli adduttori",
+   "dal": "2026-09-16",
+   "fino": null
+  },
+  {
+   "nome": "Filipe Bordon",
+   "tmId": "1110645",
+   "ruolo": "Difensore centrale",
+   "squadra": "SS Lazio",
+   "eta": 21,
+   "infortunio": "Frattura del metatarso",
+   "dal": "2026-07-23",
+   "fino": null
+  },
+  {
+   "nome": "Keinan Davis",
+   "tmId": "412660",
+   "ruolo": "Punta centrale",
+   "squadra": "Udinese Calcio",
+   "eta": 28,
+   "infortunio": "Problema muscolare",
+   "dal": "2026-09-20",
+   "fino": null
+  },
+  {
+   "nome": "Francisco Conceição",
+   "tmId": "487474",
+   "ruolo": "Ala destra",
+   "squadra": "Juventus FC",
+   "eta": 23,
+   "infortunio": "Infortunio alla coscia",
+   "dal": "2026-09-27",
+   "fino": null
+  },
+  {
+   "nome": "Alexis Saelemaekers",
+   "tmId": "381950",
+   "ruolo": "Esterno di destra",
+   "squadra": "AC Milan",
+   "eta": 27,
+   "infortunio": "Distorsione alla caviglia",
+   "dal": "2026-09-29",
+   "fino": null
+  },
+  {
+   "nome": "Ridgeciano Haps",
+   "tmId": "228444",
+   "ruolo": "Esterno di sinistra",
+   "squadra": "Venezia FC",
+   "eta": 33,
+   "infortunio": "Problema fisico",
+   "dal": "2026-09-18",
+   "fino": null
+  },
+  {
+   "nome": "Pasquale Mazzocchi",
+   "tmId": "250153",
+   "ruolo": "Terzino destro",
+   "squadra": "Venezia FC",
+   "eta": 31,
+   "infortunio": "Problema fisico",
+   "dal": "2026-09-18",
+   "fino": null
+  },
+  {
+   "nome": "Giacomo Raspadori",
+   "tmId": "405885",
+   "ruolo": "Seconda punta",
+   "squadra": "Atalanta",
+   "eta": 26,
+   "infortunio": "Infortunio alla coscia",
+   "dal": "2026-09-28",
+   "fino": null
+  },
+  {
+   "nome": "Juan Cabal",
+   "tmId": "686965",
+   "ruolo": "Terzino sinistro",
+   "squadra": "Juventus FC",
+   "eta": 25,
+   "infortunio": "Problemi alla coscia",
+   "dal": "2026-09-02",
+   "fino": null
+  },
+  {
+   "nome": "M'Bala Nzola",
+   "tmId": "354814",
+   "ruolo": "Punta centrale",
+   "squadra": "Cagliari Calcio",
+   "eta": 30,
+   "infortunio": "Ritardo di condizione",
+   "dal": "2026-09-01",
+   "fino": null
+  },
+  {
+   "nome": "Mattia Felici",
+   "tmId": "600041",
+   "ruolo": "Ala sinistra",
+   "squadra": "Cagliari Calcio",
+   "eta": 25,
+   "infortunio": "Rottura del legamento crociato",
+   "dal": "2026-09-08",
+   "fino": null
+  },
+  {
+   "nome": "Yael Trepy",
+   "tmId": "1099924",
+   "ruolo": "Punta centrale",
+   "squadra": "Cagliari Calcio",
+   "eta": 20,
+   "infortunio": "Problema fisico",
+   "dal": "2026-08-17",
+   "fino": null
+  },
+  {
+   "nome": "Patrick Ciurria",
+   "tmId": "255838",
+   "ruolo": "Esterno di destra",
+   "squadra": "AC Monza",
+   "eta": 31,
+   "infortunio": "Problema fisico",
+   "dal": "2026-08-14",
+   "fino": null
+  },
+  {
+   "nome": "Jan Ziolkowski",
+   "tmId": "1046867",
+   "ruolo": "Difensore centrale",
+   "squadra": "AC Monza",
+   "eta": 21,
+   "infortunio": "Fascite plantare",
+   "dal": "2026-09-05",
+   "fino": null
+  },
+  {
+   "nome": "Luis Hasa",
+   "tmId": "724178",
+   "ruolo": "Centrocampista",
+   "squadra": "Frosinone Calcio",
+   "eta": 22,
+   "infortunio": "Raffreddore",
+   "dal": "2026-10-01",
+   "fino": null
+  },
+  {
+   "nome": "Antonio Raimondo",
+   "tmId": "818888",
+   "ruolo": "Punta centrale",
+   "squadra": "Frosinone Calcio",
+   "eta": 22,
+   "infortunio": "Problemi al tallone d'Achille",
+   "dal": "2026-09-27",
+   "fino": null
+  },
+  {
+   "nome": "Alessio Furlanetto",
+   "tmId": "538079",
+   "ruolo": "Portiere",
+   "squadra": "SS Lazio",
+   "eta": 24,
+   "infortunio": "Operazione al legamento crociato",
+   "dal": "2026-07-01",
+   "fino": null
+  },
+  {
+   "nome": "Bryan Cristante",
+   "tmId": "199248",
+   "ruolo": "Mediano",
+   "squadra": "AS Roma",
+   "eta": 31,
+   "infortunio": "Infiammazione del ginocchio",
+   "dal": "2026-10-01",
+   "fino": null
+  },
+  {
+   "nome": "Donyell Malen",
+   "tmId": "326029",
+   "ruolo": "Punta centrale",
+   "squadra": "AS Roma",
+   "eta": 27,
+   "infortunio": "Problema fisico",
+   "dal": "2026-09-21",
+   "fino": null
+  },
+  {
+   "nome": "Federico Dimarco",
+   "tmId": "198116",
+   "ruolo": "Terzino sinistro",
+   "squadra": "Inter",
+   "eta": 28,
+   "infortunio": "Problemi al ginocchio",
+   "dal": "2026-09-21",
+   "fino": null
+  },
+  {
+   "nome": "Adrián Bernabé",
+   "tmId": "466802",
+   "ruolo": "Centrocampista",
+   "squadra": "Parma Calcio",
+   "eta": 25,
+   "infortunio": "Problema muscolare",
+   "dal": "2026-09-18",
+   "fino": null
+  },
+  {
+   "nome": "Franz-Ethan Meichtry",
+   "tmId": "1172166",
+   "ruolo": "Centrocampista",
+   "squadra": "Genoa CFC",
+   "eta": 21,
+   "infortunio": "Infortunio all'anca",
+   "dal": "2026-09-28",
+   "fino": null
+  },
+  {
+   "nome": "Danilo Cataldi",
+   "tmId": "199733",
+   "ruolo": "Mediano",
+   "squadra": "SS Lazio",
+   "eta": 32,
+   "infortunio": "Infortunio agli adduttori",
+   "dal": "2026-09-28",
+   "fino": null
+  },
+  {
+   "nome": "Adam Marusic",
+   "tmId": "239802",
+   "ruolo": "Terzino destro",
+   "squadra": "SS Lazio",
+   "eta": 33,
+   "infortunio": "Infortunio alla coscia",
+   "dal": "2026-08-24",
+   "fino": null
+  },
+  {
+   "nome": "Matteo Cancellieri",
+   "tmId": "550106",
+   "ruolo": "Ala destra",
+   "squadra": "SS Lazio",
+   "eta": 24,
+   "infortunio": "Infortunio alla gamba",
+   "dal": "2026-09-25",
+   "fino": null
+  },
+  {
+   "nome": "Albert Gudmundsson",
+   "tmId": "305947",
+   "ruolo": "Seconda punta",
+   "squadra": "SS Lazio",
+   "eta": 29,
+   "infortunio": "Infortunio alla spalla",
+   "dal": "2026-09-27",
+   "fino": null
+  },
+  {
+   "nome": "Toma Bašić",
+   "tmId": "334835",
+   "ruolo": "Centrocampista",
+   "squadra": "Venezia FC",
+   "eta": 29,
+   "infortunio": "Infiammazione della pianta plantare",
+   "dal": "2026-09-05",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Cristian Volpato",
+   "tmId": "746891",
+   "ruolo": "Ala destra",
+   "squadra": "US Sassuolo",
+   "eta": 22,
+   "infortunio": "Infortunio muscolare",
+   "dal": "2026-09-07",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Matteo Dagasso",
+   "tmId": "744621",
+   "ruolo": "Centrocampista",
+   "squadra": "Venezia FC",
+   "eta": 22,
+   "infortunio": "Problema fisico",
+   "dal": "2026-09-09",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Nicolò Zaniolo",
+   "tmId": "392085",
+   "ruolo": "Seconda punta",
+   "squadra": "Udinese Calcio",
+   "eta": 27,
+   "infortunio": "Problemi alla coscia",
+   "dal": "2026-09-24",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Hakan Çalhanoğlu",
+   "tmId": "126414",
+   "ruolo": "Mediano",
+   "squadra": "Inter",
+   "eta": 32,
+   "infortunio": "Infortunio agli adduttori",
+   "dal": "2026-09-13",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Randal Kolo Muani",
+   "tmId": "487969",
+   "ruolo": "Punta centrale",
+   "squadra": "Juventus FC",
+   "eta": 27,
+   "infortunio": "Frattura del dito",
+   "dal": "2026-09-21",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Djed Spence",
+   "tmId": "483348",
+   "ruolo": "Terzino destro",
+   "squadra": "Inter",
+   "eta": 26,
+   "infortunio": "Ritardo di condizione",
+   "dal": "2026-08-17",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Artem Dovbyk",
+   "tmId": "343537",
+   "ruolo": "Punta centrale",
+   "squadra": "Bologna FC",
+   "eta": 29,
+   "infortunio": "Problema muscolare",
+   "dal": "2026-09-11",
+   "fino": "2026-10-05"
+  },
+  {
+   "nome": "Armel Bella-Kotchap",
+   "tmId": "467563",
+   "ruolo": "Difensore centrale",
+   "squadra": "Venezia FC",
+   "eta": 24,
+   "infortunio": "Infortunio agli adduttori",
+   "dal": "2026-09-06",
+   "fino": "2026-10-06"
+  },
+  {
+   "nome": "Juan Arizala",
+   "tmId": "1118347",
+   "ruolo": "Esterno di sinistra",
+   "squadra": "Udinese Calcio",
+   "eta": 20,
+   "infortunio": "Infortunio al bicipite femorale",
+   "dal": "2026-09-04",
+   "fino": "2026-10-06"
+  },
+  {
+   "nome": "Jérémie Boga",
+   "tmId": "216569",
+   "ruolo": "Ala sinistra",
+   "squadra": "Juventus FC",
+   "eta": 29,
+   "infortunio": "Infortunio al bicipite femorale",
+   "dal": "2026-09-07",
+   "fino": "2026-10-07"
+  },
+  {
+   "nome": "Alex Meret",
+   "tmId": "240414",
+   "ruolo": "Portiere",
+   "squadra": "SSC Napoli",
+   "eta": 29,
+   "infortunio": "Infortunio agli adduttori",
+   "dal": "2026-09-10",
+   "fino": "2026-10-08"
+  },
+  {
+   "nome": "Giovane",
+   "tmId": "1005165",
+   "ruolo": "Punta centrale",
+   "squadra": "SSC Napoli",
+   "eta": 22,
+   "infortunio": "Ernia inguinale",
+   "dal": "2026-09-03",
+   "fino": "2026-10-08"
+  },
+  {
+   "nome": "Joël Schingtienne",
+   "tmId": "707809",
+   "ruolo": "Difensore centrale",
+   "squadra": "Venezia FC",
+   "eta": 24,
+   "infortunio": "Distorsione alla caviglia",
+   "dal": "2026-09-29",
+   "fino": "2026-10-10"
+  },
+  {
+   "nome": "Elias Havel",
+   "tmId": "566626",
+   "ruolo": "Punta centrale",
+   "squadra": "Genoa CFC",
+   "eta": 23,
+   "infortunio": "Problema agli adduttori",
+   "dal": "2026-08-17",
+   "fino": "2026-10-10"
+  },
+  {
+   "nome": "Ché Adams",
+   "tmId": "346779",
+   "ruolo": "Punta centrale",
+   "squadra": "Torino FC",
+   "eta": 30,
+   "infortunio": "Infortunio agli adduttori",
+   "dal": "2026-09-13",
+   "fino": "2026-10-11"
+  },
+  {
+   "nome": "Luca Marianucci",
+   "tmId": "814446",
+   "ruolo": "Difensore centrale",
+   "squadra": "SSC Napoli",
+   "eta": 22,
+   "infortunio": "Infortunio al legamento collaterale mediale",
+   "dal": "2026-08-10",
+   "fino": "2026-10-12"
+  },
+  {
+   "nome": "John Stones",
+   "tmId": "186590",
+   "ruolo": "Difensore centrale",
+   "squadra": "Inter",
+   "eta": 32,
+   "infortunio": "Stiramento alla coscia",
+   "dal": "2026-09-15",
+   "fino": "2026-10-12"
+  },
+  {
+   "nome": "Gianluca Busio",
+   "tmId": "504209",
+   "ruolo": "Mediano",
+   "squadra": "Venezia FC",
+   "eta": 24,
+   "infortunio": "Stiramento muscolare",
+   "dal": "2026-09-12",
+   "fino": "2026-10-12"
+  },
+  {
+   "nome": "Nicolò Rovella",
+   "tmId": "525704",
+   "ruolo": "Mediano",
+   "squadra": "SS Lazio",
+   "eta": 24,
+   "infortunio": "Infortunio al polpaccio",
+   "dal": "2026-08-31",
+   "fino": "2026-10-15"
+  },
+  {
+   "nome": "Jay Idzes",
+   "tmId": "546926",
+   "ruolo": "Difensore centrale",
+   "squadra": "US Sassuolo",
+   "eta": 26,
+   "infortunio": "Stiramento alla coscia",
+   "dal": "2026-09-13",
+   "fino": "2026-10-15"
+  },
+  {
+   "nome": "Alisson Santos",
+   "tmId": "830365",
+   "ruolo": "Ala sinistra",
+   "squadra": "SSC Napoli",
+   "eta": 24,
+   "infortunio": "Infortunio al bicipite femorale",
+   "dal": "2026-09-10",
+   "fino": "2026-10-15"
+  },
+  {
+   "nome": "Fabiano Parisi",
+   "tmId": "547985",
+   "ruolo": "Terzino sinistro",
+   "squadra": "ACF Fiorentina",
+   "eta": 25,
+   "infortunio": "Infortunio al legamento crociato",
+   "dal": "2026-05-18",
+   "fino": "2026-10-19"
+  },
+  {
+   "nome": "Lorenzo Venturino",
+   "tmId": "1061820",
+   "ruolo": "Ala destra",
+   "squadra": "Genoa CFC",
+   "eta": 20,
+   "infortunio": "Operazione al ginocchio",
+   "dal": "2026-05-31",
+   "fino": "2026-10-30"
+  },
+  {
+   "nome": "Riyad Idrissi",
+   "tmId": "885226",
+   "ruolo": "Terzino sinistro",
+   "squadra": "Cagliari Calcio",
+   "eta": 21,
+   "infortunio": "Rottura del legamento crociato",
+   "dal": "2026-03-08",
+   "fino": "2026-10-30"
+  },
+  {
+   "nome": "Jakub Piotrowski",
+   "tmId": "377243",
+   "ruolo": "Centrocampista",
+   "squadra": "Udinese Calcio",
+   "eta": 28,
+   "infortunio": "Problema fisico",
+   "dal": "2026-09-08",
+   "fino": "2026-10-30"
+  },
+  {
+   "nome": "Marin Šverko",
+   "tmId": "282169",
+   "ruolo": "Difensore centrale",
+   "squadra": "Venezia FC",
+   "eta": 28,
+   "infortunio": "Problema fisico",
+   "dal": "2026-07-01",
+   "fino": "2026-10-31"
+  },
+  {
+   "nome": "Alessandro Buongiorno",
+   "tmId": "386446",
+   "ruolo": "Difensore centrale",
+   "squadra": "SSC Napoli",
+   "eta": 27,
+   "infortunio": "Operazione al ginocchio",
+   "dal": "2026-07-17",
+   "fino": "2026-10-31"
+  },
+  {
+   "nome": "Matteo Pessina",
+   "tmId": "332179",
+   "ruolo": "Centrocampista",
+   "squadra": "AC Monza",
+   "eta": 29,
+   "infortunio": "Infortunio al ginocchio",
+   "dal": "2026-08-13",
+   "fino": "2026-11-01"
+  },
+  {
+   "nome": "Hans Nicolussi Caviglia",
+   "tmId": "430280",
+   "ruolo": "Mediano",
+   "squadra": "Parma Calcio",
+   "eta": 26,
+   "infortunio": "Pubalgia",
+   "dal": "2026-07-23",
+   "fino": "2026-11-02"
+  },
+  {
+   "nome": "Jeff Ekhator",
+   "tmId": "934878",
+   "ruolo": "Punta centrale",
+   "squadra": "Juventus FC",
+   "eta": 19,
+   "infortunio": "Stiramento alla coscia",
+   "dal": "2026-08-30",
+   "fino": "2026-11-02"
+  },
+  {
+   "nome": "Kenan Yıldız",
+   "tmId": "845654",
+   "ruolo": "Ala sinistra",
+   "squadra": "Juventus FC",
+   "eta": 21,
+   "infortunio": "Frattura del piede",
+   "dal": "2026-08-24",
+   "fino": "2026-11-25"
+  },
+  {
+   "nome": "Franco Israel",
+   "tmId": "492319",
+   "ruolo": "Portiere",
+   "squadra": "Torino FC",
+   "eta": 26,
+   "infortunio": "Infortunio alla spalla",
+   "dal": "2026-06-19",
+   "fino": "2026-12-04"
+  },
+  {
+   "nome": "Bartol Franjic",
+   "tmId": "370998",
+   "ruolo": "Difensore centrale",
+   "squadra": "Venezia FC",
+   "eta": 26,
+   "infortunio": "Infortunio alla spalla",
+   "dal": "2026-08-31",
+   "fino": "2026-12-07"
+  },
+  {
+   "nome": "Khéphren Thuram",
+   "tmId": "463618",
+   "ruolo": "Centrocampista",
+   "squadra": "Juventus FC",
+   "eta": 25,
+   "infortunio": "Operazione al ginocchio",
+   "dal": "2026-07-13",
+   "fino": "2027-01-01"
+  },
+  {
+   "nome": "Ismaël Koné",
+   "tmId": "921655",
+   "ruolo": "Centrocampista",
+   "squadra": "US Sassuolo",
+   "eta": 24,
+   "infortunio": "Frattura di tibia e perone",
+   "dal": "2026-06-19",
+   "fino": "2027-01-03"
+  },
+  {
+   "nome": "Manuel Locatelli",
+   "tmId": "265088",
+   "ruolo": "Mediano",
+   "squadra": "Juventus FC",
+   "eta": 28,
+   "infortunio": "Infortunio al menisco",
+   "dal": "2026-09-07",
+   "fino": "2027-01-07"
+  },
+  {
+   "nome": "Emil Holm",
+   "tmId": "496745",
+   "ruolo": "Terzino destro",
+   "squadra": "Bologna FC",
+   "eta": 26,
+   "infortunio": "Infortunio al bicipite femorale",
+   "dal": "2026-09-27",
+   "fino": "2027-01-25"
+  },
+  {
+   "nome": "Kamil Grabara",
+   "tmId": "346551",
+   "ruolo": "Portiere",
+   "squadra": "Juventus FC",
+   "eta": 27,
+   "infortunio": "Rottura del legamento crociato",
+   "dal": "2026-09-19",
+   "fino": "2027-07-31"
+  }
+ ]
+}

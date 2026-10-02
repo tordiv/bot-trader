@@ -7,6 +7,7 @@ import fs from 'node:fs';
 import { TEAMS, parseSquad } from './parse-squads.mjs';
 import { ALIASES, CURATION } from './curation.mjs';
 import { matchIndex, readListone } from './listone.mjs';
+import { OGGI, durata, findPlayer, giornateSaltate, statoDaPartite, statsFromMatches, stimaRientro, teamSlugFrom } from './gerarchie.mjs';
 
 const OUT = '../src/data';
 const CAL_NAMES = {
@@ -80,18 +81,20 @@ const cal = JSON.parse(fs.readFileSync('.cache/calendar.json', 'utf8')).matches;
 const slugs = TEAMS.map((t) => t[0]);
 const venue = Object.fromEntries(slugs.map((s) => [s, Array(38).fill(null)]));
 const opp = Object.fromEntries(slugs.map((s) => [s, Array(38).fill(null)]));
+const dataG = Object.fromEntries(slugs.map((s) => [s, Array(38).fill(null)]));
 for (const m of cal) {
   const g = parseInt(m.round.replace(/\D/g, '')) - 1;
   const h = CAL_NAMES[m.team1], a = CAL_NAMES[m.team2];
   if (!h || !a) throw new Error('squadra sconosciuta ' + m.team1 + ' / ' + m.team2);
   venue[h][g] = 'C'; venue[a][g] = 'T'; opp[h][g] = a; opp[a][g] = h;
+  dataG[h][g] = m.date; dataG[a][g] = m.date;
 }
 for (const s of slugs) if (venue[s].some((v) => !v)) throw new Error('calendario incompleto per ' + s);
 
 // ---------- squadre ----------
 const teams = TEAMS.map(([slug, nome]) => ({
   slug, nome, stemma: crests[slug] || null, fascia: CURATION[slug].tier,
-  calendario: venue[slug].map((v, i) => ({ g: i + 1, campo: v, avversario: opp[slug][i] })),
+  calendario: venue[slug].map((v, i) => ({ g: i + 1, campo: v, avversario: opp[slug][i], data: dataG[slug][i] })),
 }));
 
 // ---------- matrice portieri ----------
@@ -165,19 +168,6 @@ for (const [slug, , title] of TEAMS) {
     const qt = Math.max(1, Math.round(r.qtA));
     const rig = cur.rig[0] === name ? 1 : cur.rig[1] === name ? 2 : 0;
     const dettaglio = detailFromRm(ruolo, r.rm, sp ? detailFor(ruolo, ib.posRaw || '', name) : '—');
-    // media voto stimata (base per il modificatore di difesa classico)
-    let mv = null;
-    if (ruolo === 'D' || ruolo === 'P') {
-      mv = [6.27, 6.2, 6.12, 6.05, 6.0][cur.tier - 1];
-      if (dettaglio === 'Difensore centrale') mv += 0.04;
-      if (dettaglio !== 'Difensore centrale' && ruolo === 'D') mv -= 0.03;
-      if (ruolo === 'P') mv -= 0.05;
-      if (stato === 'ballottaggio') mv -= 0.07;
-      if (stato === 'riserva') mv -= 0.12;
-      // a parità di squadra e ruolo, i più quotati prendono voti più alti
-      mv += Math.max(-0.05, Math.min(0.1, (qt - BASE[ruolo][cur.tier - 1]) * 0.008));
-      mv = Math.round(mv * 100) / 100;
-    }
     let id = `${slug}-${normId(name)}`;
     if (ids.has(id)) id += `-${r.id}`;
     ids.add(id);
@@ -204,7 +194,8 @@ for (const [slug, , title] of TEAMS) {
       presenzeCarriera: ib.apps || 0,
       golCarriera: ib.goals || 0,
       presenzeNazionale: ib.natCaps || 0,
-      mvStimata: mv,
+      mvStimata: null,
+      _tier: cur.tier,
       prestito: sp && /loan/i.test(sp.other) ? 'In prestito' : null,
       fantaId: r.id,
       nomeListone: r.nome,
@@ -214,10 +205,90 @@ for (const [slug, , title] of TEAMS) {
 if (missing.length) { console.error('Nomi di curatela non presenti nel listone:\n' + missing.join('\n')); process.exitCode = 1; }
 const unmapped = listone.filter((r) => !SLUG_BY_NAME[r.squadra]);
 if (unmapped.length) { console.error('Squadre del listone sconosciute:', [...new Set(unmapped.map((r) => r.squadra))]); process.exitCode = 1; }
+
+// ---------- gerarchie dalle partite giocate ----------
+const partiteSrc = JSON.parse(fs.readFileSync('fonti/partite.json', 'utf8'));
+const infSrc = JSON.parse(fs.readFileSync('fonti/infortuni.json', 'utf8'));
+const calBySlug = Object.fromEntries(teams.map((t) => [t.slug, t.calendario]));
+const { stats, nonAbbinati, giornate: G } = statsFromMatches(partiteSrc.partite, players, slugs, calBySlug);
+const dataUltimaG = Math.max(...Object.values(calBySlug).map((c) => Date.parse(c[G - 1].data)));
+if (nonAbbinati.length) console.warn(`Giocatori ESPN con minuti ma non nel listone (${nonAbbinati.length}):\n  ` + nonAbbinati.join('\n  '));
+
+// indisponibili
+const infNonAbbinati = [];
+for (const inf of infSrc.infortunati) {
+  const slug = teamSlugFrom(inf.squadra, slugs);
+  const p = slug && findPlayer(players.filter((x) => x.squadra === slug), inf.nome);
+  if (!p) {
+    infNonAbbinati.push(`${inf.squadra}: ${inf.nome}`);
+    continue;
+  }
+  const fino = inf.fino || stimaRientro(inf);
+  const giorni = Math.max(0, Math.round((Date.parse(fino) - Date.parse(OGGI)) / 86400000));
+  p.infortunio = { tipo: inf.infortunio, dal: inf.dal, fino, stimato: !inf.fino, durata: durata(giorni), giorni, giornate: giornateSaltate(fino, calBySlug[slug]) };
+}
+if (infNonAbbinati.length) console.warn('Infortunati non abbinati:\n  ' + infNonAbbinati.join('\n  '));
+
+const tot = { partite: 0, curatela: 0 };
+for (const slug of slugs) {
+  const rosa = players.filter((p) => p.squadra === slug);
+  for (const p of rosa) {
+    const st = stats.get(p.id);
+    p.statoPreStagione = p.stato;
+    p.stagione = st
+      ? { tit: st.tit, sub: st.sub, min: st.min, gol: st.gol, assist: st.assist, amm: st.amm, esp: st.esp, seq: st.seq.join(''), ...(st.exClub ? { exClub: st.exClub } : {}) }
+      : { tit: 0, sub: 0, min: 0, gol: 0, assist: 0, amm: 0, esp: 0, seq: '-'.repeat(G) };
+    let stato = statoDaPartite(st, G);
+    p.statoFonte = 'partite';
+    // infortunato prima o durante le giornate giocate: le presenze non dicono la sua gerarchia reale
+    const rank = { titolare: 2, ballottaggio: 1, riserva: 0 };
+    if (p.infortunio && Date.parse(p.infortunio.dal ?? OGGI) <= dataUltimaG && rank[p.statoPreStagione] > rank[stato]) {
+      stato = p.statoPreStagione;
+      p.statoFonte = 'curatela';
+    }
+    p.stato = stato;
+    if (st?.rossoUltima) p.squalifica = 1;
+    if (st && st.amm === 4) p.diffidato = true;
+    tot[p.statoFonte]++;
+  }
+  // portieri: un solo titolare, quello con più partenze (a parità, il più quotato)
+  const gk = rosa.filter((p) => p.ruolo === 'P').sort((a, b) => b.stagione.tit - a.stagione.tit || b.qt - a.qt);
+  const gkTit = gk.find((p) => p.statoFonte === 'curatela' && p.statoPreStagione === 'titolare' && p.stagione.tit === 0) ?? gk[0];
+  for (const p of gk) p.stato = p === gkTit ? 'titolare' : p.stagione.tit > 0 || p.stato !== 'riserva' ? 'ballottaggio' : 'riserva';
+  // rigoristi: chi li ha calciati in campionato diventa il 1°, il 1° previsto scala a 2°
+  const takers = rosa.filter((p) => stats.get(p.id)?.rigori).sort((a, b) => stats.get(b.id).rigori - stats.get(a.id).rigori);
+  if (takers.length) {
+    const r1 = rosa.find((p) => p.rigorista === 1);
+    const r2 = rosa.find((p) => p.rigorista === 2);
+    for (const p of rosa) p.rigorista = 0;
+    takers[0].rigorista = 1;
+    const second = takers[1] ?? (r1 && r1 !== takers[0] ? r1 : r2 && r2 !== takers[0] ? r2 : null);
+    if (second) second.rigorista = 2;
+  }
+  for (const p of rosa) if (stats.get(p.id)?.golPunizione) p.punizioni = true;
+}
+
+// media voto stimata (base per il modificatore di difesa classico), con lo stato aggiornato
+for (const p of players) {
+  if (p.ruolo !== 'D' && p.ruolo !== 'P') continue;
+  let mv = [6.27, 6.2, 6.12, 6.05, 6.0][p._tier - 1];
+  if (p.dettaglio === 'Difensore centrale') mv += 0.04;
+  if (p.dettaglio !== 'Difensore centrale' && p.ruolo === 'D') mv -= 0.03;
+  if (p.ruolo === 'P') mv -= 0.05;
+  if (p.stato === 'ballottaggio') mv -= 0.07;
+  if (p.stato === 'riserva') mv -= 0.12;
+  // a parità di squadra e ruolo, i più quotati prendono voti più alti
+  mv += Math.max(-0.05, Math.min(0.1, (p.qt - BASE[p.ruolo][p._tier - 1]) * 0.008));
+  p.mvStimata = Math.round(mv * 100) / 100;
+}
+for (const p of players) delete p._tier;
+const contaStati = players.reduce((a, p) => ((a[p.stato] = (a[p.stato] || 0) + 1), a), {});
+console.log(`gerarchie da ${G} giornate:`, contaStati, 'fonte:', tot, 'infortunati:', players.filter((p) => p.infortunio).length);
+
 const order = { P: 0, D: 1, C: 2, A: 3 };
 players.sort((a, b) => order[a.ruolo] - order[b.ruolo] || b.qt - a.qt || a.nome.localeCompare(b.nome));
 
-const meta = { stagione: '2026/27', generato: new Date().toISOString().slice(0, 10), listone: 'Quotazioni Fantacalcio Stagione 2026/27 (Leghe Fantacalcio)', fonti: ['Listone ufficiale Leghe Fantacalcio (ruoli, Qt.A, Qt.I, FVM)', 'Wikipedia (rose e infobox)', 'openfootball/football.json (calendario)', 'Curatela War Room (rigoristi, titolari, ballottaggi)'] };
+const meta = { stagione: '2026/27', generato: new Date().toISOString().slice(0, 10), giornateAnalizzate: G, partite: partiteSrc.scaricato, infortuni: infSrc.scaricato, listone: 'Quotazioni Fantacalcio Stagione 2026/27 (Leghe Fantacalcio)', fonti: ['Listone ufficiale Leghe Fantacalcio (ruoli, Qt.A, Qt.I, FVM)', 'Wikipedia (rose e infobox)', 'openfootball/football.json (calendario)', 'Match report ESPN (formazioni, cambi, rigori)', 'Transfermarkt (infortunati)', 'Curatela War Room (rigoristi e gerarchie di partenza)'] };
 fs.writeFileSync(`${OUT}/initialPlayers.json`, JSON.stringify({ meta, players }));
 fs.writeFileSync(`${OUT}/goalkeeperMatrix.json`, JSON.stringify({ meta, squadre: slugs, matrice: matrix }, null, 1));
 fs.writeFileSync(`${OUT}/teams.json`, JSON.stringify(teams));

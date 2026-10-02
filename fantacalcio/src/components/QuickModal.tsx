@@ -5,7 +5,8 @@ import { useBuyerName, useOwnership, usePlayerMap } from '../store/hooks'
 import { fuzzyScore, prezzoConsigliato, summarize } from '../lib/calc'
 import { teamName } from '../lib/data'
 import { beep, celebrate, cn } from '../lib/utils'
-import { Crest, Delta, Gerarchie, Kbd, RoleBadge, StatoBadge } from './ui'
+import { infortunioTesto } from '../lib/infortuni'
+import { Crest, Delta, Disponibilita, Forma, Gerarchie, Kbd, RoleBadge, StatoBadge } from './ui'
 import type { Player } from '../types'
 
 export default function QuickModal() {
@@ -201,7 +202,7 @@ export default function QuickModal() {
                   <div className="min-w-0 flex-1">
                     <div className="truncate font-semibold text-slate-100">{p.nome}</div>
                     <div className="flex items-center gap-2 text-xs text-slate-400">
-                      {teamName(p.squadra)} <StatoBadge s={p.stato} /> <Gerarchie p={p} />
+                      {teamName(p.squadra)} <StatoBadge s={p.stato} /> <Gerarchie p={p} /> <Disponibilita p={p} /> <Forma p={p} compact />
                     </div>
                   </div>
                   <div className="text-right">
@@ -221,6 +222,14 @@ export default function QuickModal() {
                 <div className="text-xl font-black text-white">{selected.nome}</div>
                 <div className="flex items-center gap-2 text-xs text-slate-400">
                   {teamName(selected.squadra)} · {selected.dettaglio} <StatoBadge s={selected.stato} /> <Gerarchie p={selected} />
+                </div>
+                <div className="mt-1 flex items-center gap-2">
+                  <Forma p={selected} />
+                  {selected.stagione && (
+                    <span className="text-[11px] text-slate-500">
+                      {selected.stagione.gol} gol · {selected.stagione.assist} assist
+                    </span>
+                  )}
                 </div>
               </div>
               {!preset && (
@@ -263,6 +272,14 @@ export default function QuickModal() {
             {target != null && (
               <div className="h-2 overflow-hidden rounded-full bg-slate-800">
                 <div className={cn('h-full transition-all', priceNum <= target ? 'bg-emerald-500' : priceNum <= target * 1.25 ? 'bg-amber-500' : 'bg-rose-500')} style={{ width: `${Math.min(100, (priceNum / Math.max(1, target * 1.5)) * 100)}%` }} />
+              </div>
+            )}
+            {(selected.infortunio || selected.squalifica) && (
+              <div className={cn('flex items-center gap-2 rounded-lg px-3 py-2 text-sm ring-1', selected.infortunio && ['lungo', 'stagione'].includes(selected.infortunio.durata) ? 'bg-rose-500/15 text-rose-200 ring-rose-500/40' : 'bg-amber-500/10 text-amber-200 ring-amber-500/30')}>
+                <AlertTriangle size={16} />
+                <span>
+                  {selected.infortunio ? `Infortunato: ${infortunioTesto(selected)}.` : ''} {selected.squalifica ? 'Squalificato per la prossima giornata.' : ''}
+                </span>
               </div>
             )}
             {(overMax || slotFull) && (

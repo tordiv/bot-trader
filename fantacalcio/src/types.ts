@@ -29,9 +29,29 @@ export interface Player {
   presenzeNazionale: number
   mvStimata: number | null
   prestito: string | null
+  /** presenze nelle giornate giocate: seq = T titolare, S subentrato, P panchina, - non convocato, x con l'ex club */
+  stagione?: { tit: number; sub: number; min: number; gol: number; assist: number; amm: number; esp: number; seq: string; exClub?: string }
+  infortunio?: Infortunio
+  statoFonte?: 'partite' | 'curatela'
+  statoPreStagione?: Stato
+  squalifica?: number
+  diffidato?: boolean
   fantaId?: string // Id del listone Leghe Fantacalcio
   nomeListone?: string
   importato?: boolean
+}
+
+export type Durata = 'breve' | 'medio' | 'lungo' | 'stagione'
+export const DURATA_LABEL: Record<Durata, string> = { breve: 'Breve (≤ 2 sett.)', medio: 'Medio (2–6 sett.)', lungo: 'Lungo (6 sett.–4 mesi)', stagione: 'Lunghissimo (> 4 mesi)' }
+
+export interface Infortunio {
+  tipo: string
+  dal: string | null
+  fino: string
+  stimato: boolean // rientro stimato dal tipo di infortunio (fonte senza data)
+  durata: Durata
+  giorni: number
+  giornate: number // giornate che salterà
 }
 
 export type Tag = 'must' | 'budget' | 'scommessa'

@@ -202,6 +202,11 @@ function PitchToken({ item, r }: { item: RosterItem | null; r: Ruolo }) {
       <div className="relative">
         <Crest slug={p.squadra} size={44} className="ring-2 ring-white/70" />
         <span className="absolute -bottom-1 -right-2 rounded bg-slate-950 px-1 font-mono text-[10px] font-bold text-emerald-300 ring-1 ring-emerald-500/50">{item.price}</span>
+        {(p.infortunio || p.squalifica) && (
+          <span title={p.infortunio ? `Infortunato fino al ${p.infortunio.fino}` : 'Squalificato'} className="absolute -left-2 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-rose-600 text-[10px] font-black text-white ring-2 ring-white/70">
+            {p.infortunio ? '✚' : '!'}
+          </span>
+        )}
       </div>
       <div className="w-full truncate rounded bg-slate-950/80 px-1 text-center text-[11px] font-bold text-white">{p.nome.split(' ').slice(-1)[0]}</div>
     </div>
@@ -425,9 +430,18 @@ function HotTargets() {
 
 function PairAlerts() {
   const alerts = usePairAlerts()
-  if (alerts.length === 0) return null
+  const roster = useMyRoster()
+  const ko = roster.filter((x) => x.player.infortunio || x.player.squalifica)
+  if (alerts.length === 0 && ko.length === 0) return null
   return (
-    <Card title="Allarmi coppie" icon={<AlertTriangle size={16} className="text-amber-400" />}>
+    <Card title="Allarmi rosa & coppie" icon={<AlertTriangle size={16} className="text-amber-400" />}>
+      {ko.length > 0 && (
+        <div className="mb-2 space-y-0.5">
+          {ko.map((x) => (
+            <PlayerLine key={x.player.id} p={x.player} right={<span className="font-mono text-xs text-slate-400">{x.price}</span>} />
+          ))}
+        </div>
+      )}
       <ul className="space-y-1.5">
         {alerts.map((a) => (
           <li key={a.pair.id} className={cn('rounded-lg px-3 py-2 text-xs ring-1', a.level === 'rotta' ? 'bg-rose-500/10 text-rose-200 ring-rose-500/30' : 'bg-amber-500/10 text-amber-200 ring-amber-500/30')}>

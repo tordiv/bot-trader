@@ -2,12 +2,17 @@
  "meta": {
   "stagione": "2026/27",
   "generato": "2026-10-02",
+  "giornateAnalizzate": 5,
+  "partite": "2026-10-02",
+  "infortuni": "2026-10-02",
   "listone": "Quotazioni Fantacalcio Stagione 2026/27 (Leghe Fantacalcio)",
   "fonti": [
    "Listone ufficiale Leghe Fantacalcio (ruoli, Qt.A, Qt.I, FVM)",
    "Wikipedia (rose e infobox)",
    "openfootball/football.json (calendario)",
-   "Curatela War Room (rigoristi, titolari, ballottaggi)"
+   "Match report ESPN (formazioni, cambi, rigori)",
+   "Transfermarkt (infortunati)",
+   "Curatela War Room (rigoristi e gerarchie di partenza)"
   ]
  },
  "squadre": [

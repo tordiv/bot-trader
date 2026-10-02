@@ -5,7 +5,7 @@ import { useMyRoster, useOwnership } from '../store/hooks'
 import { MOD_SOGLIE, mediaModificatore, modificatore } from '../lib/calc'
 import { teamName } from '../lib/data'
 import { cn } from '../lib/utils'
-import { Card, Crest, Delta, Gerarchie, RoleBadge, StarButton } from '../components/ui'
+import { Card, Crest, Delta, Disponibilita, Gerarchie, RoleBadge, StarButton } from '../components/ui'
 import { RUOLI, RUOLO_LABEL, type Player, type Ruolo } from '../types'
 
 const RANGE: Record<Ruolo, [number, number]> = { P: [7, 8], D: [18, 20], C: [28, 30], A: [42, 45] }
@@ -290,6 +290,7 @@ function DefRow({ p, right }: { p: Player; right: React.ReactNode }) {
       <StarButton id={p.id} size={12} />
       <Crest slug={p.squadra} size={16} />
       <span className="flex-1 truncate font-semibold text-slate-200">{p.nome}</span>
+      <Disponibilita p={p} />
       <Gerarchie p={p} />
       <span className="w-6 text-right font-mono text-slate-500">{p.qt}</span>
       {right}

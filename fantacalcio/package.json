@@ -9,7 +9,8 @@
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
-    "data": "cd scripts && node parse-squads.mjs && node fetch-players.mjs && node fetch-crests.mjs && node build-data.mjs"
+    "data": "cd scripts && node parse-squads.mjs && node fetch-players.mjs && node fetch-crests.mjs && node fetch-matches.mjs && node fetch-injuries.mjs && node build-data.mjs",
+    "gerarchie": "cd scripts && node fetch-matches.mjs && node fetch-injuries.mjs && node build-data.mjs"
   },
   "dependencies": {
     "canvas-confetti": "^1.9.4",

@@ -6,6 +6,9 @@ import { INITIAL_PLAYERS } from '../lib/data'
 import { distribuisci } from '../lib/calc'
 import { uid } from '../lib/utils'
 
+/** Versione del database giocatori: incrementarla quando cambiano i dati in src/data. */
+const DB_VERSION = 3
+
 export const DEFAULT_SETTINGS: Settings = {
   budget: 500,
   slots: { P: 3, D: 8, C: 8, A: 6 },
@@ -211,12 +214,13 @@ export const useStore = create<State>()(
     }),
     {
       name: 'fanta-warroom-2627',
-      // v2: database allineato al listone ufficiale 2026/27 -> sostituisce i giocatori salvati,
-      // mantenendo acquisti, note, pupilli, coppie e impostazioni (gli id restano gli stessi)
-      version: 2,
+      // ad ogni aggiornamento del database (v2 listone ufficiale, v3 gerarchie dalle partite e infortuni)
+      // i giocatori salvati vengono sostituiti; acquisti, note, pupilli, coppie e impostazioni restano
+      // (gli id dei giocatori non cambiano)
+      version: DB_VERSION,
       migrate: (persisted, from) => {
         const s = persisted as Partial<State>
-        if (from < 2) return { ...s, players: INITIAL_PLAYERS }
+        if (from < DB_VERSION) return { ...s, players: INITIAL_PLAYERS }
         return s
       },
       storage: createJSONStorage(() => localStorage),
