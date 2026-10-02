@@ -19,6 +19,10 @@ operatività automatica.
 | [`docs/06-piano-operativo.md`](docs/06-piano-operativo.md) | **Piano operativo scelto**: segnali settimanali su azioni USA con esecuzione manuale su Directa (regime amministrato) e 1.000 €. Perché niente micro futures, numeri delle commissioni, varianti A/B/C da testare in paper, strategia, cancello per il live, routine settimanale e ticket, PC Windows Pro senza UPS, prompt v3 per Claude Code, calendario. |
 | [`docs/07-manuale-motore.md`](docs/07-manuale-motore.md) | **Manuale del motore di segnali** (codice in `segnali/`): installazione su Windows, primi passi, fase paper, fase live con registro delle esecuzioni, parametri, cosa dimostrano i test, limiti noti. |
 
+## Fanta War Room (app web)
+
+La cartella [`fantacalcio/`](fantacalcio/README.md) contiene un progetto separato: una SPA (Vite + React + TypeScript) per l'asta del Fantacalcio Serie A 2026/27, pubblicata su GitHub Pages dal workflow `.github/workflows/deploy.yml`.
+
 ## Motore di segnali (codice)
 
 Implementa il piano di `docs/06`: ogni sabato produce i ticket per la settimana (azioni USA, una
