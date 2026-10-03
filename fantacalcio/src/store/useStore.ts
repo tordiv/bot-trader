@@ -33,6 +33,9 @@ export const MAX_RIVALS = 99
 
 const defaultRivals = (n = 9): Rival[] => Array.from({ length: n }, (_, i) => ({ id: `r${i + 1}`, name: `Rivale ${i + 1}` }))
 
+export type Layout = 'auto' | 'mobile' | 'desktop'
+export type MobileTab = 'asta' | 'liste' | 'piano' | 'rosa'
+
 export interface Toast {
   id: string
   text: string
@@ -54,7 +57,14 @@ interface State {
   quickPreset: string | null
   toasts: Toast[]
   myName: string
+  layout: Layout
+  mobileTab: MobileTab
+  /** giocatore aperto nella scheda di rilancio mobile */
+  sheetId: string | null
 
+  setLayout: (l: Layout) => void
+  setMobileTab: (t: MobileTab) => void
+  openSheet: (id: string | null) => void
   setView: (v: View) => void
   setRosterMode: (m: 'pitch' | 'table') => void
   setFormation: (f: Formation) => void
@@ -109,7 +119,13 @@ export const useStore = create<State>()(
       quickPreset: null,
       toasts: [],
       myName: 'La mia squadra',
+      layout: 'auto',
+      mobileTab: 'asta',
+      sheetId: null,
 
+      setLayout: (layout) => set({ layout }),
+      setMobileTab: (mobileTab) => set({ mobileTab }),
+      openSheet: (sheetId) => set({ sheetId }),
       setView: (view) => set({ view }),
       setRosterMode: (rosterMode) => set({ rosterMode }),
       setFormation: (formation) => set({ formation }),
@@ -248,6 +264,8 @@ export const useStore = create<State>()(
         rosterMode: s.rosterMode,
         formation: s.formation,
         myName: s.myName,
+        layout: s.layout,
+        mobileTab: s.mobileTab,
       }),
     },
   ),

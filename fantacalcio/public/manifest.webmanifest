@@ -1,0 +1,13 @@
+{
+  "name": "Fanta War Room 2026/27",
+  "short_name": "War Room",
+  "description": "Asta del Fantacalcio Serie A 2026/27: budget, obiettivi, piano e rivali.",
+  "lang": "it",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#020617",
+  "theme_color": "#020617",
+  "icons": [{ "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }]
+}

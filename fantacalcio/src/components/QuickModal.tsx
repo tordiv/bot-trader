@@ -2,7 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { AlertTriangle, ArrowLeftRight, Search, X, Zap } from 'lucide-react'
 import { useStore } from '../store/useStore'
 import { useBuyerName, useOwnership, usePlayerMap } from '../store/hooks'
-import { fuzzyScore, prezzoConsigliato, summarize } from '../lib/calc'
+import { prezzoConsigliato, summarize } from '../lib/calc'
+import { cercaGiocatori } from '../lib/ricerca'
 import { teamName } from '../lib/data'
 import { beep, celebrate, cn } from '../lib/utils'
 import { infortunioTesto } from '../lib/infortuni'
@@ -52,13 +53,7 @@ export default function QuickModal() {
     const q = query.trim()
     const avail = players.filter((p) => !owned.has(p.id))
     if (!q) return avail.filter((p) => custom[p.id]?.starred).slice(0, 8).concat(avail.filter((p) => !custom[p.id]?.starred).slice(0, 8)).slice(0, 8)
-    return avail
-      .map((p) => ({ p, s: Math.max(fuzzyScore(q, p.nome) * 1.2, fuzzyScore(q, `${p.nome} ${teamName(p.squadra)}`), fuzzyScore(q, teamName(p.squadra)) * 0.6) }))
-      .filter((x) => x.s > 1)
-      .map((x) => ({ p: x.p, s: x.s + x.p.qt / 20 }))
-      .sort((a, b) => b.s - a.s)
-      .slice(0, 8)
-      .map((x) => x.p)
+    return cercaGiocatori(avail, q, 8)
   }, [open, query, players, owned, custom])
 
   if (!open) return null

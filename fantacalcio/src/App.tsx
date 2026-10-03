@@ -1,11 +1,14 @@
 import { useEffect } from 'react'
-import { Database, Gavel, Grid3x3, Heart, PieChart, Zap } from 'lucide-react'
+import { Database, Gavel, Grid3x3, Heart, PieChart, Smartphone, Zap } from 'lucide-react'
 import { useStore } from './store/useStore'
-import { usePlayerMap, useSummary } from './store/hooks'
-import { beep, cn, isTyping } from './lib/utils'
+import { useSummary } from './store/hooks'
+import { annullaUltimo } from './store/actions'
+import { cn, isTyping } from './lib/utils'
 import { Kbd } from './components/ui'
 import QuickModal from './components/QuickModal'
 import Toasts from './components/Toasts'
+import MobileApp from './mobile/MobileApp'
+import { useIsMobile } from './mobile/useIsMobile'
 import WarRoom from './views/WarRoom'
 import Strategy from './views/Strategy'
 import Watchlist from './views/Watchlist'
@@ -22,14 +25,21 @@ const NAV: { id: View; label: string; short: string; icon: typeof Gavel }[] = [
 ]
 
 export default function App() {
+  const layout = useStore((s) => s.layout)
+  const small = useIsMobile()
+  const mobile = layout === 'mobile' || (layout === 'auto' && small)
+  return mobile ? <MobileApp /> : <DesktopApp />
+}
+
+function DesktopApp() {
   const view = useStore((s) => s.view)
   const setView = useStore((s) => s.setView)
   const openQuick = useStore((s) => s.openQuick)
+  const setLayout = useStore((s) => s.setLayout)
   const quickOpen = useStore((s) => s.quickOpen)
   const me = useSummary('me')
   const slots = useStore((s) => s.settings.slots)
   const total = slots.P + slots.D + slots.C + slots.A
-  const map = usePlayerMap()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -44,12 +54,7 @@ export default function App() {
       // Ctrl+Z: annulla l'ultimo acquisto (nei campi di testo resta l'undo nativo)
       if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'z' && !isTyping(e)) {
         e.preventDefault()
-        const last = st.undo()
-        if (last) {
-          const p = last.playerId ? map.get(last.playerId) : null
-          beep('undo')
-          st.toast(`Annullato: ${p ? p.nome : 'spesa rapida'} (${last.price} cr)`, 'warn')
-        } else st.toast('Nessun acquisto da annullare', 'info')
+        annullaUltimo()
         return
       }
       const digit = /^Digit([1-5])$/.exec(e.code)
@@ -60,7 +65,7 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [map])
+  }, [])
 
 
   return (
@@ -106,6 +111,9 @@ export default function App() {
               </b>
             </span>
           </div>
+          <button type="button" onClick={() => setLayout('mobile')} title="Versione mobile per l'asta" aria-label="Versione mobile" className="shrink-0 rounded-lg p-2 text-slate-400 hover:bg-white/5 hover:text-slate-200">
+            <Smartphone size={18} />
+          </button>
           <button type="button" onClick={() => openQuick()} className="flex shrink-0 items-center gap-2 rounded-lg bg-emerald-500 px-3 py-2 text-sm font-black text-emerald-950 hover:bg-emerald-400">
             <Zap size={16} /> <span className="hidden sm:inline">Acquisto</span> <Kbd>Ctrl K</Kbd>
           </button>

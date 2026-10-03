@@ -14,6 +14,19 @@ Applicazione web a pagina singola (SPA) per l'**asta del Fantacalcio** (regolame
 | `Ctrl+K` / `Cmd+K` | Acquisto rapido: ricerca fuzzy, `Tab` Io/Rivale, `Alt+1…9` sceglie il rivale, `Invio` conferma (beep) |
 | `Ctrl+Z` | Annulla l'ultimo acquisto registrato |
 
+## Versione mobile (asta dal telefono)
+
+Sotto i 768 px di larghezza l'app passa da sola alla versione mobile (dal menu ⋮ si torna alla versione completa, dall'icona 📱 della versione completa la si riapre; la scelta resta salvata sul dispositivo). È pensata per l'asta dal vivo, con i propri acquisti e la preparazione in primo piano:
+
+- **Barra fissa**: residuo, MaxBid, media per slot, slot `P/D/C/A` e totale, annulla ultimo acquisto.
+- **Asta**: ricerca istantanea (pulsante centrale) con filtro per ruolo; senza ricerca mostra i tuoi **obiettivi liberi** (pupilli non ancora presi, ordinati Must-Have → Solo sotto budget → senza etichetta → Scommessa a 1, con prezzo obiettivo) e gli ultimi acquisti.
+- **Scheda di rilancio** (tocco su un giocatore): note, etichette, infortuni, coppia collegata, piano del ruolo (prossimo slot e crediti rimasti), prezzo con −/+ e +5/+10/+25, scorciatoie Obiettivo/Piano/MaxBid, acquirente (Io o un rivale) e conferma con un tocco; sui giocatori già presi permette di annullare l'acquisto.
+- **Liste**: pupilli, Must-Have, Solo sotto budget, Scommesse a 1, coppie e pupilli infortunati, con liberi e già presi separati.
+- **Piano**: budget speso/pianificato per ruolo, piano slot per slot con Δ, partner per la griglia portieri.
+- **Rosa**: la tua rosa per ruolo con Δ sull'obiettivo e i rivali (residuo, rosa, MaxBid, acquisti).
+
+Si può aggiungere alla schermata Home (manifest incluso). Piano, coppie, note e import si preparano dalla versione completa: i dati sono gli stessi.
+
 **MaxBid** = crediti residui − (slot vuoti − 1).
 **Modificatore**: media di portiere + 3 migliori difensori (con almeno 4 difensori schierati): 6,00–6,24 → +1 · 6,25–6,49 → +3 · 6,50–6,99 → +5 · ≥ 7,00 → +6.
 
