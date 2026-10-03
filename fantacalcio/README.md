@@ -6,7 +6,7 @@ Applicazione web a pagina singola (SPA) per l'**asta del Fantacalcio** (regolame
 
 | Tasto | Vista |
 |---|---|
-| `1` / `Alt+1` | **Asta Live (War Room)**: barra fissa con budget residuo, slot `P/D/C/A`, MaxBid, media per slot; rosa su campo (3-4-3 / 4-3-3 / 4-4-2) o in tabella con subtotali; Rival Tracker (8–12 rivali) con spesa rapida; cronologia; allarmi coppie |
+| `1` / `Alt+1` | **Asta Live (War Room)**: barra fissa con budget residuo, slot `P/D/C/A`, MaxBid, media per slot; rosa su campo (3-4-3 / 4-3-3 / 4-4-2) o in tabella con subtotali; Rival Tracker con numero di rivali libero (1–99, aggiungi/elimina singolarmente) e spesa rapida; cronologia; allarmi coppie |
 | `2` / `Alt+2` | **Strategia & Budget**: crediti e slot (default 500, 3-8-8-6), ripartizione per ruolo, piano slot per slot con Δ reale/pianificato, modificatore di difesa (soglie, simulatore, proiezione sulla rosa), centrali da modificatore vs esterni da bonus |
 | `3` / `Alt+3` | **Pupilli, Ballottaggi & Coppie**: bacheche Must-Have / Solo sotto budget / Scommessa a 1, ballottaggi per squadra, coppie titolare + riserva con avviso se un rivale ne prende uno |
 | `4` / `Alt+4` | **Griglia Portieri**: matrice 20×20 di alternanza casa/trasferta dal calendario ufficiale; acquistando un portiere vengono evidenziati i partner migliori |

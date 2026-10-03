@@ -27,6 +27,10 @@ export function buildPlan(s: Settings): Record<Ruolo, number[]> {
   return plan
 }
 
+/** Limiti del numero di rivali (lega da 2 a 100 partecipanti). */
+export const MIN_RIVALS = 1
+export const MAX_RIVALS = 99
+
 const defaultRivals = (n = 9): Rival[] => Array.from({ length: n }, (_, i) => ({ id: `r${i + 1}`, name: `Rivale ${i + 1}` }))
 
 export interface Toast {
@@ -71,6 +75,8 @@ interface State {
 
   setRivalName: (id: string, name: string) => void
   setRivalCount: (n: number) => void
+  addRival: () => void
+  removeRival: (id: string) => void
   setMyName: (n: string) => void
 
   setSettings: (s: Partial<Settings>) => void
@@ -156,7 +162,7 @@ export const useStore = create<State>()(
       setRivalName: (id, name) => set({ rivals: get().rivals.map((r) => (r.id === id ? { ...r, name } : r)) }),
       setRivalCount: (n) => {
         const cur = get().rivals
-        const count = Math.max(8, Math.min(12, n))
+        const count = Math.max(MIN_RIVALS, Math.min(MAX_RIVALS, Math.round(n) || MIN_RIVALS))
         if (count > cur.length) {
           const extra = Array.from({ length: count - cur.length }, (_, i) => {
             const k = cur.length + i + 1
@@ -167,6 +173,12 @@ export const useStore = create<State>()(
           const removed = new Set(cur.slice(count).map((r) => r.id))
           set({ rivals: cur.slice(0, count), purchases: get().purchases.filter((p) => !removed.has(p.buyer)) })
         }
+      },
+      addRival: () => get().setRivalCount(get().rivals.length + 1),
+      removeRival: (id) => {
+        const cur = get().rivals
+        if (cur.length <= MIN_RIVALS) return
+        set({ rivals: cur.filter((r) => r.id !== id), purchases: get().purchases.filter((p) => p.buyer !== id) })
       },
       setMyName: (myName) => set({ myName }),
 

@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from 'react'
-import { AlertTriangle, History, LayoutGrid, Rows3, Swords, Trash2, Users, Wallet } from 'lucide-react'
-import { useStore } from '../store/useStore'
+import { AlertTriangle, History, LayoutGrid, Minus, Plus, Rows3, Swords, Trash2, Users, Wallet } from 'lucide-react'
+import { MAX_RIVALS, MIN_RIVALS, useStore } from '../store/useStore'
 import { useBuyerName, useMyRoster, useOwnership, usePlayerMap, useSummary } from '../store/hooks'
 import { summarize } from '../lib/calc'
 import { teamName } from '../lib/data'
@@ -286,10 +286,14 @@ function RivalTracker() {
   const settings = useStore((s) => s.settings)
   const setName = useStore((s) => s.setRivalName)
   const setCount = useStore((s) => s.setRivalCount)
+  const removeRival = useStore((s) => s.removeRival)
   const buy = useStore((s) => s.buy)
   const toast = useStore((s) => s.toast)
   const map = usePlayerMap()
-  const [sel, setSel] = useState(rivals[0]?.id ?? '')
+  const [selRaw, setSel] = useState(rivals[0]?.id ?? '')
+  // se il rivale selezionato viene eliminato si torna al primo
+  const sel = rivals.some((r) => r.id === selRaw) ? selRaw : rivals[0]?.id ?? ''
+  const [countDraft, setCountDraft] = useState<string | null>(null)
   const [cost, setCost] = useState('')
   const [ruolo, setRuolo] = useState<Ruolo | ''>('')
   const costRef = useRef<HTMLInputElement>(null)
@@ -297,6 +301,20 @@ function RivalTracker() {
 
   const rows = useMemo(() => rivals.map((r) => ({ r, s: summarize(purchases, r.id, settings, map) })), [rivals, purchases, settings, map])
   const maxDanger = Math.max(0, ...rows.map((x) => x.s.maxBid))
+
+  // cambia il numero di rivali; chi viene tolto (dal fondo) perde i suoi acquisti: chiede conferma
+  const changeCount = (n: number) => {
+    const count = Math.max(MIN_RIVALS, Math.min(MAX_RIVALS, n))
+    const lost = rivals.slice(count).filter((r) => purchases.some((p) => p.buyer === r.id))
+    if (lost.length && !confirm(`Rimuovendo ${lost.map((r) => r.name).join(', ')} verranno cancellati anche i loro acquisti. Continuare?`)) return
+    setCount(count)
+  }
+  const remove = (id: string) => {
+    const r = rivals.find((x) => x.id === id)
+    const n = purchases.filter((p) => p.buyer === id).length
+    if (n && !confirm(`Eliminare ${r?.name} e ${n === 1 ? 'il suo acquisto' : `i suoi ${n} acquisti`}?`)) return
+    removeRival(id)
+  }
 
   const submit = () => {
     const n = parseInt(cost, 10)
@@ -313,14 +331,36 @@ function RivalTracker() {
       title="Rival Tracker"
       icon={<Swords size={16} className="text-rose-400" />}
       actions={
-        <label className="flex items-center gap-2 text-xs text-slate-400">
+        <div className="flex items-center gap-1.5 text-xs text-slate-400">
           Rivali
-          <select value={rivals.length} onChange={(e) => setCount(parseInt(e.target.value, 10))} className="rounded border border-slate-700 bg-slate-800 px-1.5 py-0.5 text-xs">
-            {[8, 9, 10, 11, 12].map((n) => (
-              <option key={n}>{n}</option>
-            ))}
-          </select>
-        </label>
+          <div className="flex items-center overflow-hidden rounded-lg ring-1 ring-slate-700">
+            <button type="button" title="Togli l'ultimo rivale" disabled={rivals.length <= MIN_RIVALS} onClick={() => changeCount(rivals.length - 1)} className="px-1.5 py-1 hover:bg-white/10 disabled:opacity-30">
+              <Minus size={12} />
+            </button>
+            <input
+              aria-label="Numero di rivali"
+              inputMode="numeric"
+              value={countDraft ?? String(rivals.length)}
+              onChange={(e) => setCountDraft(e.target.value.replace(/\D/g, '').slice(0, 2))}
+              onFocus={(e) => e.target.select()}
+              onBlur={() => {
+                if (countDraft) changeCount(parseInt(countDraft, 10))
+                setCountDraft(null)
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') (e.target as HTMLInputElement).blur()
+                if (e.key === 'Escape') {
+                  setCountDraft(null)
+                  ;(e.target as HTMLInputElement).blur()
+                }
+              }}
+              className="w-9 bg-slate-800 py-0.5 text-center font-mono text-xs text-slate-100 outline-none"
+            />
+            <button type="button" title="Aggiungi un rivale" disabled={rivals.length >= MAX_RIVALS} onClick={() => changeCount(rivals.length + 1)} className="px-1.5 py-1 hover:bg-white/10 disabled:opacity-30">
+              <Plus size={12} />
+            </button>
+          </div>
+        </div>
       }
     >
       <form
@@ -354,6 +394,7 @@ function RivalTracker() {
             <th className="pb-1 text-right font-semibold">Residuo</th>
             <th className="pb-1 text-right font-semibold">Rosa</th>
             <th className="pb-1 text-right font-semibold">MaxBid</th>
+            <th className="w-6" />
           </tr>
         </thead>
         <tbody>
@@ -371,6 +412,20 @@ function RivalTracker() {
                 </div>
               </td>
               <td className={cn('text-right font-mono font-black', s.maxBid === maxDanger && maxDanger > 0 ? 'text-rose-400' : 'text-amber-300')}>{s.maxBid}</td>
+              <td className="pl-1 text-right">
+                <button
+                  type="button"
+                  title={`Elimina ${r.name}`}
+                  disabled={rivals.length <= MIN_RIVALS}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    remove(r.id)
+                  }}
+                  className="rounded p-1 text-slate-600 hover:bg-rose-500/10 hover:text-rose-400 disabled:invisible"
+                >
+                  <Trash2 size={12} />
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
